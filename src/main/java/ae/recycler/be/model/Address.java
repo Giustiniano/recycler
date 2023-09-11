@@ -1,12 +1,26 @@
 package ae.recycler.be.model;
 
 import lombok.*;
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Property;
+
+import java.util.UUID;
 
 
-
+@Node
 @Getter
-@Setter
-public class Address extends BaseModel {
+@Builder
+@EqualsAndHashCode
+public class Address{
+    @Id
+    @GeneratedValue
+    private UUID id;
+    @Property
+    @Setter
     private String geolocation;
-    private String human_readable_address;
+    @Setter
+    @Property
+    private String humanReadableAddress;
 }

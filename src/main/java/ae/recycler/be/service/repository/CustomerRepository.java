@@ -11,8 +11,11 @@ import java.util.UUID;
 
 public interface CustomerRepository extends ReactiveCrudRepository<Customer, UUID> {
 
-    @Query("MATCH (c:Customer {id:$customerId})-[:HAS_ADDRESS]->(a:Address {id:$addressId}) RETURN a")
+    @Query("""
+            MATCH (c:Customer {id:$customerId})-[:HAS_ADDRESS]->(a:Address {id:$addressId}) RETURN
+            a.geolocation as geolocation, a.id as id,
+            a.humanReadableAddress as humanReadableAddress
+            """)
     Mono<Address> findCustomerAddress(@Param("customerId") UUID customerId, @Param("addressId") UUID addressId);
-
 
 }

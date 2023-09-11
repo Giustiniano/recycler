@@ -1,19 +1,24 @@
 package ae.recycler.be.model;
 
-import ae.recycler.be.api.views.serializers.OrderBody;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.data.neo4j.core.schema.Property;
-import org.springframework.data.neo4j.core.schema.Relationship;
+import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.neo4j.core.schema.*;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 
 @Getter
 @Builder
-public class Order extends BaseModel {
+@Node
+@EqualsAndHashCode
+@ToString
+public class Order {
+    @GeneratedValue
+    @Id
+    private UUID id;
     @Property
     @Setter
     private Integer boxes;
@@ -37,5 +42,9 @@ public class Order extends BaseModel {
     @Setter
     @EqualsAndHashCode.Exclude
     private List<Vehicle> assignedVehicle;
+    @CreatedDate
+    private Instant createdDate;
+    @LastModifiedDate
+    private Instant lastModified;
 
 }
