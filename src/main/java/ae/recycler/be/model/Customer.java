@@ -28,7 +28,6 @@ public class Customer{
     @Relationship(type = "HAS_ADDRESS", direction = Relationship.Direction.OUTGOING)
     @EqualsAndHashCode.Exclude
     private List<Address> addresses;
-    @Relationship(type = "SUBMITTED_BY", direction = Relationship.Direction.INCOMING)
-    @EqualsAndHashCode.Exclude
-    private List<Order> submittedOrders;
+
 }
+

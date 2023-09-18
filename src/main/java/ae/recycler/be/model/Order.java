@@ -3,6 +3,8 @@ package ae.recycler.be.model;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.neo4j.config.EnableNeo4jAuditing;
+import org.springframework.data.neo4j.config.EnableReactiveNeo4jAuditing;
 import org.springframework.data.neo4j.core.schema.*;
 
 import java.time.Instant;
