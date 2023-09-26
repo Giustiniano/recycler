@@ -20,9 +20,9 @@ public class OrderResponse {
     private Instant createdDate;
     private Instant lastModified;
     public static Mono<OrderResponse> fromOrder(Order order){
-        return Mono.just(OrderResponse.builder().orderId(order.getId()).pickupAddress(order.getPickupAddresses().get(0)
-                        .getId()).orderStatus(order.getOrderStatuses().get(0).getOrderStatus()).boxes(order.getBoxes())
-                .customerId(order.getSubmittedBy().get(0).getId()).createdDate(order.getCreatedDate())
+        return Mono.just(OrderResponse.builder().orderId(order.getId()).pickupAddress(order.getPickupAddress()
+                        .getId()).orderStatus(order.getOrderStatuses().last().getOrderStatus()).boxes(order.getBoxes())
+                .customerId(order.getSubmittedBy().getId()).createdDate(order.getCreatedDate())
                 .lastModified(order.getLastModified()).build());
     }
 }

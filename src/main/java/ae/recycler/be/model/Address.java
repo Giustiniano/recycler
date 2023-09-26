@@ -1,16 +1,15 @@
 package ae.recycler.be.model;
 
 import lombok.*;
-import org.springframework.data.neo4j.core.schema.GeneratedValue;
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Property;
+import org.springframework.data.neo4j.core.schema.*;
 
+import java.util.List;
 import java.util.UUID;
 
 
 @Node
 @Getter
+@Setter
 @Builder
 @EqualsAndHashCode
 public class Address{
@@ -23,4 +22,5 @@ public class Address{
     @Setter
     @Property
     private String humanReadableAddress;
+
 }

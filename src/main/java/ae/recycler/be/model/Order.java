@@ -3,12 +3,11 @@ package ae.recycler.be.model;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.neo4j.config.EnableNeo4jAuditing;
-import org.springframework.data.neo4j.config.EnableReactiveNeo4jAuditing;
 import org.springframework.data.neo4j.core.schema.*;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.SortedSet;
 import java.util.UUID;
 
 
@@ -27,19 +26,19 @@ public class Order {
     @Relationship(type = "PICKUP_FROM", direction = Relationship.Direction.OUTGOING)
     @Setter
     @EqualsAndHashCode.Exclude
-    private List<Address> pickupAddresses;
+    private Address pickupAddress;
     @Relationship(type = "SUBMITTED_BY", direction = Relationship.Direction.OUTGOING)
     @Setter
     @EqualsAndHashCode.Exclude
-    private List<Customer> submittedBy;
+    private Customer submittedBy;
     @Relationship(type = "HAS_STATUS", direction = Relationship.Direction.OUTGOING)
     @Setter
     @EqualsAndHashCode.Exclude
-    private List<OrderStatus> orderStatuses;
+    private SortedSet<OrderStatus> orderStatuses;
     @Relationship(type = "DELIVER_TO", direction = Relationship.Direction.OUTGOING)
     @Setter
     @EqualsAndHashCode.Exclude
-    private List<Address> deliveryAddresses;
+    private Address deliveryAddresses;
     @Relationship(type = "PICKUP_WITH", direction = Relationship.Direction.OUTGOING)
     @Setter
     @EqualsAndHashCode.Exclude
@@ -48,5 +47,20 @@ public class Order {
     private Instant createdDate;
     @LastModifiedDate
     private Instant lastModified;
+    // Transient fields
+    private OrderStatus lastStatus;
+
+    @PostLoad
+    private void setTransients(){
+        this.lastStatus = orderStatuses.last();
+    }
+
+    public boolean isUpdateable(){
+        return switch (this.getOrderStatuses().last().getOrderStatus()){
+            case SUBMITTED, ASSIGNED, PICKING_UP, SCHEDULED -> true;
+            default -> false;
+        };
+    }
+
 
 }
