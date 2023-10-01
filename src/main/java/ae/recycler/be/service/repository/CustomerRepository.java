@@ -13,7 +13,7 @@ public interface CustomerRepository extends ReactiveCrudRepository<Customer, UUI
 
     @Query("""
             MATCH (c:Customer {id:$customerId})-[:HAS_ADDRESS]->(a:Address {id:$addressId}) RETURN
-            a.geolocation as geolocation, a.id as id,
+            a.lat as lat, a.lng as lng, a.id as id,
             a.humanReadableAddress as humanReadableAddress
             """)
     Mono<Address> findCustomerAddress(@Param("customerId") UUID customerId, @Param("addressId") UUID addressId);

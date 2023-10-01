@@ -8,6 +8,7 @@ import ae.recycler.be.factories.OrderFactory;
 import ae.recycler.be.model.Address;
 import ae.recycler.be.model.Customer;
 import ae.recycler.be.model.Order;
+import ae.recycler.be.service.events.serializers.OrderEvent;
 import ae.recycler.be.service.repository.AddressRepository;
 import ae.recycler.be.service.repository.CustomerRepository;
 import ae.recycler.be.service.repository.OrderRepository;
@@ -21,12 +22,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
@@ -40,6 +44,8 @@ public class OrderResourceIntegrationTests {
 
     @Container
     static Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:5.11-community").withAdminPassword("verysecret").withExposedPorts(7687,7474);
+    @Container
+    static KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.5.0"));
     @Autowired
     private WebTestClient webTestClient;
     @Autowired
@@ -48,11 +54,14 @@ public class OrderResourceIntegrationTests {
     private CustomerRepository customerRepository;
     @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    ReactiveKafkaConsumerTemplate<String, OrderEvent> reactiveKafkaConsumerTemplate;
     @DynamicPropertySource
     static void neo4jProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.neo4j.uri", neo4j::getBoltUrl);
         registry.add("spring.neo4j.authentication.username", () -> "neo4j");
         registry.add("spring.neo4j.authentication.password", () -> neo4j.getAdminPassword());
+        registry.add("spring.kafka.producer.bootstrap-servers", () -> kafka.getBootstrapServers());
     }
 
 
@@ -66,10 +75,9 @@ public class OrderResourceIntegrationTests {
     // POST
     @Test
     public void testSaveOrder(){
-        Address address = addressRepository.save(Address.builder().humanReadableAddress("Gotham City").geolocation("123").build()).block();
+        Address address = addressRepository.save(AddressFactory.build()).block();
         Customer customer = customerRepository.save(Customer.builder().email("some_email@example.com")
                 .addresses(List.of(address)).build()).block();
-//
 
         OrderResponse orderJson = webTestClient.post().uri(orderApi).body(Mono.just(NewOrderRequest.builder()
                         .customerId(customer.getId())
@@ -126,6 +134,7 @@ public class OrderResourceIntegrationTests {
 
     @Test
     public void testUpdateOrder(){
+
         Order order = OrderFactory.build();
         orderRepository.save(order).block();
         Customer customer = order.getSubmittedBy();
@@ -149,6 +158,7 @@ public class OrderResourceIntegrationTests {
         assert UUID.fromString((String) orderData.get("pickupAddress")).equals(newAddress.getId());
         assert orderData.get("orderStatus").equals("ASSIGNED");
         assert orderData.get("boxes").equals(10);
+        String kafkaLogs = kafka.getLogs();
     }
 
     @ParameterizedTest

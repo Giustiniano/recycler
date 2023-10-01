@@ -42,7 +42,7 @@ public class Order {
     @Relationship(type = "PICKUP_WITH", direction = Relationship.Direction.OUTGOING)
     @Setter
     @EqualsAndHashCode.Exclude
-    private List<Vehicle> assignedVehicle;
+    private Vehicle assignedVehicle;
     @CreatedDate
     private Instant createdDate;
     @LastModifiedDate

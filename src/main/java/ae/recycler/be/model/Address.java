@@ -18,7 +18,10 @@ public class Address{
     private UUID id;
     @Property
     @Setter
-    private String geolocation;
+    private float lat;
+    @Property
+    @Setter
+    private float lng;
     @Setter
     @Property
     private String humanReadableAddress;

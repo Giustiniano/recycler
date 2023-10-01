@@ -1,5 +1,6 @@
 package ae.recycler.be.model;
 
+import ae.recycler.be.enums.VehicleStatus;
 import ae.recycler.be.enums.VehicleType;
 import lombok.Getter;
 import lombok.Setter;
@@ -7,7 +8,9 @@ import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
+import reactor.util.function.Tuple2;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -23,4 +26,13 @@ public class Vehicle extends BaseModel{
     private String plate;
     @Property
     private Integer capacity;
+    @Property
+    private VehicleStatus status;
+    @Property
+    private List<Order> assignedOrders;
+    @Property
+    private float lat;
+    @Property
+    private float lng;
+
 }

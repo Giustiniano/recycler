@@ -5,9 +5,14 @@ import ae.recycler.be.api.views.serializers.OrderUpdateRequest;
 import ae.recycler.be.enums.OrderStatusEnum;
 import ae.recycler.be.model.Order;
 import ae.recycler.be.model.OrderStatus;
+import ae.recycler.be.model.Vehicle;
+import ae.recycler.be.service.events.serializers.OrderEvent;
+import ae.recycler.be.service.events.OrderEventProducer;
 import ae.recycler.be.service.repository.AddressRepository;
 import ae.recycler.be.service.repository.OrderRepository;
 import ae.recycler.be.service.repository.CustomerRepository;
+import ae.recycler.be.service.repository.VehicleRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -15,14 +20,19 @@ import reactor.core.publisher.Mono;
 import java.util.*;
 
 @Component
+@Slf4j
 public class OrderService {
     @Autowired
     private OrderRepository orderRepository;
     @Autowired
     private AddressRepository addressRepository;
-
     @Autowired
     private CustomerRepository customerRepository;
+    @Autowired
+    private VehicleRepository vehicleRepository;
+    @Autowired
+    private OrderEventProducer producer;
+
 
 
     public Mono<Order> saveOrder(Mono<NewOrderRequest> orderBody) {
@@ -55,7 +65,33 @@ public class OrderService {
                 .flatMap(updateableOrder -> updatePickupAddress(updateableOrder, dataToUpdate.getNewPickupAddress()))
                 .flatMap(orderWithUpdatedPickupAddress -> updateStatus(orderWithUpdatedPickupAddress, dataToUpdate.getNewStatus()))
                 .flatMap(orderWithUpdatedStatus -> updateBoxes(orderWithUpdatedStatus, dataToUpdate.getNewBoxesCount()))
-                .flatMap(fullyUpdatedOrder -> orderRepository.save(fullyUpdatedOrder));
+                .flatMap(fullyUpdatedOrder -> orderRepository.save(fullyUpdatedOrder))
+                .flatMap(savedOrder -> producer.sendOrderEvent(OrderEvent.fromOrder(savedOrder)).flatMap(eventSendResult
+                        -> {
+                                if(eventSendResult.exception() != null){
+                                    return Mono.error(eventSendResult.exception());
+                                }
+                                return Mono.just(savedOrder);
+                        }));
+    }
+
+    public void assignOrderToVehicle(OrderEvent orderEvent){
+        orderRepository.findById(orderEvent.getOrderId()).flatMap(order ->{
+            OrderStatusEnum orderState =  order.getOrderStatuses().last().getOrderStatus();
+            if(orderState.equals(OrderStatusEnum.SUBMITTED)){
+                Vehicle assignedVehicle = vehicleRepository.findClosestVehicle(orderEvent.getOrderId());
+                if(assignedVehicle == null){
+                    return Mono.error(new IllegalStateException("Unable to find vehicle to assign to this order"));
+                }
+                order.setAssignedVehicle(assignedVehicle);
+                orderRepository.save(order);
+            }
+            else {
+                log.debug("Order {} has state {}, nothing to do", orderEvent, orderState);
+            }
+            return Mono.just(order);
+        }).switchIfEmpty(Mono.error(new IllegalStateException(String.format("Event %s cannot be " +
+                "processed, because order with id %s cannot be found", orderEvent, orderEvent.getOrderId()))));
     }
 
     private Mono<Order> isOrderUpdatable(Order order){

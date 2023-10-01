@@ -1,5 +1,6 @@
 package ae.recycler.be.service.repository;
 
+import ae.recycler.be.factories.AddressFactory;
 import ae.recycler.be.model.Address;
 import ae.recycler.be.model.Customer;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +37,7 @@ public class CustomerRepositoryIntegrationTests {
 
     @Test
     public void testFindUserAddress(){
-        Address address = addressRepository.save(Address.builder().humanReadableAddress("Gotham City").geolocation("123").build()).block();
+        Address address = addressRepository.save(AddressFactory.build()).block();
         Customer customer = customerRepository.save(Customer.builder().email("some_email@example.com")
                 .addresses(List.of(address)).build()).block();
         var customerAddress = customerRepository.findCustomerAddress(customer.getId(), address.getId()).block();

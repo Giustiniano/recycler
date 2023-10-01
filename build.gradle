@@ -27,6 +27,7 @@ dependencies {
 	testImplementation 'io.projectreactor:reactor-test'
 	testImplementation "org.testcontainers:junit-jupiter:1.19.0"
 	testImplementation group: 'org.testcontainers', name: 'neo4j', version: '1.19.0'
+	testImplementation "org.testcontainers:kafka:1.19.0"
 }
 
 tasks.named('test') {
