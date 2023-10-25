@@ -21,7 +21,7 @@ public class OrderResponse {
     private Instant lastModified;
     public static Mono<OrderResponse> fromOrder(Order order){
         return Mono.just(OrderResponse.builder().orderId(order.getId()).pickupAddress(order.getPickupAddress()
-                        .getId()).orderStatus(order.getOrderStatuses().last().getOrderStatus()).boxes(order.getBoxes())
+                        .getId()).orderStatus(order.getOrderStatus()).boxes(order.getBoxes())
                 .customerId(order.getSubmittedBy().getId()).createdDate(order.getCreatedDate())
                 .lastModified(order.getLastModified()).build());
     }

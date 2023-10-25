@@ -1,0 +1,42 @@
+{
+  "fleet": {
+    "types": [
+      {
+        "id": "car_profile",
+        "profile": "car_1",
+        "costs": {
+          "distance": 0.0001,
+          "time": 0
+        },
+        "shifts": [
+          {
+            "start": {
+              "time": "2021-07-04T10:00:00.000Z",
+              "location": {
+                "lat": 47.623231,
+                "lng": -122.340168
+              }
+            },
+            "end": {
+              "time": "2021-07-04T12:00:00.000Z",
+              "location": {
+                "lat": 47.623231,
+                "lng": -122.340168
+              }
+            }
+          }
+        ],
+        "capacity": [
+          0
+        ],
+        "amount": 1
+      }
+    ],
+    "profiles": [
+      {
+        "name": "car_1",
+        "type": "car"
+      }
+    ]
+  }
+}

@@ -4,10 +4,7 @@ import ae.recycler.be.enums.VehicleStatus;
 import ae.recycler.be.enums.VehicleType;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.neo4j.core.schema.GeneratedValue;
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Property;
+import org.springframework.data.neo4j.core.schema.*;
 import reactor.util.function.Tuple2;
 
 import java.util.List;
@@ -34,5 +31,10 @@ public class Vehicle extends BaseModel{
     private float lat;
     @Property
     private float lng;
-
+    @Relationship(type = "HAS_DRIVER", direction = Relationship.Direction.OUTGOING)
+    private Driver driver;
+    @Property
+    private float depotLat;
+    @Property
+    private float depotLng;
 }

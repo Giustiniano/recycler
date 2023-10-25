@@ -38,7 +38,7 @@ public class OrderEventConsumer {
                 )
                 .map(ConsumerRecord::value)
                 .doOnNext(orderEvent -> {
-                    orderService.assignOrderToVehicle(orderEvent);
+                    orderService.assignNewOrderToVehicle(orderEvent);
                     log.info("successfully consumed {}={}", OrderEvent.class.getSimpleName(), orderEvent);
                 })
                 .doOnError(throwable -> log.error("something bad happened while consuming event : {}", throwable.getMessage()));

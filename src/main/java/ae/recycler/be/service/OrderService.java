@@ -3,15 +3,13 @@ package ae.recycler.be.service;
 import ae.recycler.be.api.views.serializers.NewOrderRequest;
 import ae.recycler.be.api.views.serializers.OrderUpdateRequest;
 import ae.recycler.be.enums.OrderStatusEnum;
+import ae.recycler.be.enums.VehicleStatus;
+import ae.recycler.be.model.Driver;
 import ae.recycler.be.model.Order;
-import ae.recycler.be.model.OrderStatus;
 import ae.recycler.be.model.Vehicle;
 import ae.recycler.be.service.events.serializers.OrderEvent;
 import ae.recycler.be.service.events.OrderEventProducer;
-import ae.recycler.be.service.repository.AddressRepository;
-import ae.recycler.be.service.repository.OrderRepository;
-import ae.recycler.be.service.repository.CustomerRepository;
-import ae.recycler.be.service.repository.VehicleRepository;
+import ae.recycler.be.service.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,6 +29,8 @@ public class OrderService {
     @Autowired
     private VehicleRepository vehicleRepository;
     @Autowired
+    private DriverRepository driverRepository;
+    @Autowired
     private OrderEventProducer producer;
 
 
@@ -43,14 +43,10 @@ public class OrderService {
                         newOrderRequest1.getCustomerId(), newOrderRequest1.getPickupAddress()
                 ).switchIfEmpty(Mono.error(
                         new IllegalStateException("Cannot find pickup address in customer address list"))
-                ).flatMap(address -> {
-                            SortedSet<OrderStatus> statuses = new TreeSet<>();
-                            statuses.add(OrderStatus.builder().orderStatus(OrderStatusEnum.SUBMITTED).build());
-                            return orderRepository.save(Order.builder()
-                                    .orderStatuses(statuses)
-                                    .pickupAddress(address).boxes(newOrderRequest1.getBoxes())
-                                    .submittedBy(customer).build());
-                        }
+                ).flatMap(address -> orderRepository.save(Order.builder()
+                        .orderStatus(OrderStatusEnum.SUBMITTED)
+                        .pickupAddress(address).boxes(newOrderRequest1.getBoxes())
+                        .submittedBy(customer).build())
                 )));
     }
 
@@ -75,14 +71,47 @@ public class OrderService {
                         }));
     }
 
-    public void assignOrderToVehicle(OrderEvent orderEvent){
+
+    public Mono<List<Order>> assignOrdersToVehicle(UUID driverId, UUID vehicleId){
+        return Mono.zip(driverRepository.findById(driverId)
+                .switchIfEmpty(Mono.error(
+                        new IllegalStateException(String.format("Unable to find driver with id %s", driverId)))),
+                vehicleRepository.findById(vehicleId)
+                .switchIfEmpty(Mono.error(
+                        new IllegalStateException(String.format("Unable to find driver with id %s", driverId))))
+        ).flatMap(driverVehicleTuple -> assignOrdersToVehicle(driverVehicleTuple.getT1(), driverVehicleTuple.getT2()));
+
+    }
+    public Mono<List<Order>> assignOrdersToVehicle(Driver driver, Vehicle vehicle){
+        return orderRepository.findByOrderStatusOrderByCreatedAtAsc(OrderStatusEnum.SUBMITTED).flatMap(orders -> {
+            int capacity = 0;
+            List<Order> assignedOrders = new ArrayList<>();
+            while(orders.iterator().hasNext()){
+                Order order = orders.iterator().next();
+                if(capacity + order.getBoxes() <= vehicle.getCapacity()){
+                    capacity += order.getBoxes();
+                    order.setAssignedVehicle(vehicle);
+                    order.setOrderStatus(OrderStatusEnum.ASSIGNED);
+                    assignedOrders.add(order);
+                }
+                else {
+                    break;
+                }
+            }
+            vehicle.setAssignedOrders(assignedOrders);
+            vehicleRepository.save(vehicle);
+            return Mono.just(assignedOrders);
+        });
+    }
+    public void assignNewOrderToVehicle(OrderEvent orderEvent){
         orderRepository.findById(orderEvent.getOrderId()).flatMap(order ->{
-            OrderStatusEnum orderState =  order.getOrderStatuses().last().getOrderStatus();
+            OrderStatusEnum orderState =  order.getOrderStatus();
             if(orderState.equals(OrderStatusEnum.SUBMITTED)){
                 Vehicle assignedVehicle = vehicleRepository.findClosestVehicle(orderEvent.getOrderId());
                 if(assignedVehicle == null){
                     return Mono.error(new IllegalStateException("Unable to find vehicle to assign to this order"));
                 }
+                assignedVehicle.setStatus(VehicleStatus.PICKING_UP);
                 order.setAssignedVehicle(assignedVehicle);
                 orderRepository.save(order);
             }
@@ -97,7 +126,7 @@ public class OrderService {
     private Mono<Order> isOrderUpdatable(Order order){
         return order.isUpdateable() ? Mono.just(order) : Mono.error(
                 new IllegalStateException(String.format("Order with status %s cannot be updated",
-                        order.getOrderStatuses().last().getOrderStatus())));
+                        order.getOrderStatus())));
     }
     private Mono<Order> updatePickupAddress(Order order, UUID address){
         if(address == null){
@@ -111,7 +140,7 @@ public class OrderService {
 
     private Mono<Order> updateStatus(Order order, OrderStatusEnum newStatus){
         if(newStatus != null){
-            order.getOrderStatuses().add(OrderStatus.builder().orderStatus(newStatus).build());
+           order.setOrderStatus(newStatus);
         }
 
         return Mono.just(order);

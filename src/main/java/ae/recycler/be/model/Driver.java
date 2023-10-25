@@ -9,13 +9,14 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Getter
 @Setter
 @Node
 @Builder
-public class Driver extends BaseModel{
+public class Driver extends BaseModel {
     @GeneratedValue
     @Id
     private UUID id;
@@ -23,4 +24,8 @@ public class Driver extends BaseModel{
     private String name;
     @Property
     private boolean available;
+    @Property
+    private Instant shiftStarts;
+    @Property
+    private Instant shiftEnds;
 }

@@ -14,5 +14,5 @@ public class OrderUpdateRequest {
     private OrderStatusEnum newStatus;
     private UUID newPickupAddress;
     private UUID newDriver;
-    private Integer newBoxesCount;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  private Integer newBoxesCount;
 }

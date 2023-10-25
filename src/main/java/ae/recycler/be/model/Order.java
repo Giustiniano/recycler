@@ -1,5 +1,6 @@
 package ae.recycler.be.model;
 
+import ae.recycler.be.enums.OrderStatusEnum;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -31,10 +32,9 @@ public class Order {
     @Setter
     @EqualsAndHashCode.Exclude
     private Customer submittedBy;
-    @Relationship(type = "HAS_STATUS", direction = Relationship.Direction.OUTGOING)
     @Setter
-    @EqualsAndHashCode.Exclude
-    private SortedSet<OrderStatus> orderStatuses;
+    @Property
+    private OrderStatusEnum orderStatus;
     @Relationship(type = "DELIVER_TO", direction = Relationship.Direction.OUTGOING)
     @Setter
     @EqualsAndHashCode.Exclude
@@ -50,13 +50,9 @@ public class Order {
     // Transient fields
     private OrderStatus lastStatus;
 
-    @PostLoad
-    private void setTransients(){
-        this.lastStatus = orderStatuses.last();
-    }
 
     public boolean isUpdateable(){
-        return switch (this.getOrderStatuses().last().getOrderStatus()){
+        return switch (this.orderStatus){
             case SUBMITTED, ASSIGNED, PICKING_UP, SCHEDULED -> true;
             default -> false;
         };

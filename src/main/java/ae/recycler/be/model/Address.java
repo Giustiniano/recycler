@@ -17,12 +17,9 @@ public class Address{
     @GeneratedValue
     private UUID id;
     @Property
-    @Setter
     private float lat;
     @Property
-    @Setter
     private float lng;
-    @Setter
     @Property
     private String humanReadableAddress;
 
