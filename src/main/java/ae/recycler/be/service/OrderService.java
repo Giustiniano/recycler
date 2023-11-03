@@ -10,6 +10,8 @@ import ae.recycler.be.model.Vehicle;
 import ae.recycler.be.service.events.serializers.OrderEvent;
 import ae.recycler.be.service.events.OrderEventProducer;
 import ae.recycler.be.service.repository.*;
+import ae.recycler.be.service.repository.here.HereAPIRepository;
+import ae.recycler.be.service.repository.here.ResponseObjects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,7 +34,8 @@ public class OrderService {
     private DriverRepository driverRepository;
     @Autowired
     private OrderEventProducer producer;
-
+    @Autowired
+    private HereAPIRepository hereAPIRepository;
 
 
     public Mono<Order> saveOrder(Mono<NewOrderRequest> orderBody) {
@@ -83,25 +86,22 @@ public class OrderService {
 
     }
     public Mono<List<Order>> assignOrdersToVehicle(Driver driver, Vehicle vehicle){
-        return orderRepository.findByOrderStatusOrderByCreatedAtAsc(OrderStatusEnum.SUBMITTED).flatMap(orders -> {
-            int capacity = 0;
-            List<Order> assignedOrders = new ArrayList<>();
-            while(orders.iterator().hasNext()){
-                Order order = orders.iterator().next();
-                if(capacity + order.getBoxes() <= vehicle.getCapacity()){
-                    capacity += order.getBoxes();
-                    order.setAssignedVehicle(vehicle);
-                    order.setOrderStatus(OrderStatusEnum.ASSIGNED);
-                    assignedOrders.add(order);
-                }
-                else {
-                    break;
-                }
-            }
-            vehicle.setAssignedOrders(assignedOrders);
-            vehicleRepository.save(vehicle);
-            return Mono.just(assignedOrders);
-        });
+        return orderRepository.findByOrderStatusOrderByCreatedAtAsc(OrderStatusEnum.SUBMITTED)
+                .flatMap(orders -> hereAPIRepository.getPickupPath(List.of(vehicle), orders).flatMap(stops ->
+                        {
+                            for(ResponseObjects.Stop s: stops){
+                                UUID orderId = UUID.fromString(s.getActivities().get(0).getJobId());
+                                orders.stream().filter(order -> order.getId().equals(orderId))
+                                        .forEach(order -> {
+                                            order.setAssignedVehicle(vehicle);
+                                            order.setOrderStatus(OrderStatusEnum.ASSIGNED);
+                                            orderRepository.save(order);
+                                        });
+                            }
+                            return Mono.just(vehicle.getAssignedOrders());
+                        }));
+
+
     }
     public void assignNewOrderToVehicle(OrderEvent orderEvent){
         orderRepository.findById(orderEvent.getOrderId()).flatMap(order ->{
@@ -122,6 +122,7 @@ public class OrderService {
         }).switchIfEmpty(Mono.error(new IllegalStateException(String.format("Event %s cannot be " +
                 "processed, because order with id %s cannot be found", orderEvent, orderEvent.getOrderId()))));
     }
+
 
     private Mono<Order> isOrderUpdatable(Order order){
         return order.isUpdateable() ? Mono.just(order) : Mono.error(
@@ -152,6 +153,7 @@ public class OrderService {
         }
         return Mono.just(order);
     }
+
 }
 
 

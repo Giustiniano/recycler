@@ -10,6 +10,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 
 import java.time.Instant;
+import java.time.temporal.ChronoField;
 import java.util.UUID;
 
 @Getter
@@ -25,7 +26,23 @@ public class Driver extends BaseModel {
     @Property
     private boolean available;
     @Property
-    private Instant shiftStarts;
+    private int shiftStartsHour;
     @Property
-    private Instant shiftEnds;
+    private int shiftStartsMinute;
+    @Property
+    private int shiftEndsHour;
+    @Property
+    private int shiftEndsMinute;
+
+
+    public Instant getShiftStarts(){
+        return Instant.now().with(ChronoField.HOUR_OF_DAY, shiftStartsHour)
+                .with(ChronoField.MINUTE_OF_DAY, shiftStartsMinute);
+    }
+
+    public Instant getShiftEnds(){
+        return Instant.now().with(ChronoField.HOUR_OF_DAY, shiftEndsHour)
+                .with(ChronoField.MINUTE_OF_DAY, shiftEndsMinute);
+    }
+
 }

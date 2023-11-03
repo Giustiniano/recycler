@@ -47,9 +47,6 @@ public class Order {
     private Instant createdDate;
     @LastModifiedDate
     private Instant lastModified;
-    // Transient fields
-    private OrderStatus lastStatus;
-
 
     public boolean isUpdateable(){
         return switch (this.orderStatus){

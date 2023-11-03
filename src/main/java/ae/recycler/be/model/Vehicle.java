@@ -37,4 +37,8 @@ public class Vehicle extends BaseModel{
     private float depotLat;
     @Property
     private float depotLng;
+    @Property
+    private double costDistance = 0.0001;
+    @Property
+    private int costTime = 0;
 }
