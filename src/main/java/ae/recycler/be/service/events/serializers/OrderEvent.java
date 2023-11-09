@@ -21,7 +21,7 @@ public class OrderEvent {
 
     public static OrderEvent fromOrder(Order order){
         var builder = OrderEvent.builder().orderId(order.getId()).
-                currentStatus(order.getOrderStatuses().last().getOrderStatus())
+                currentStatus(order.getOrderStatus())
                 .lastModified(order.getLastModified()).pickupAddress(order.getPickupAddress().getId())
                 .submittedBy(order.getSubmittedBy().getId());
         if(order.getAssignedVehicle() != null){

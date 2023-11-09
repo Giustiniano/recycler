@@ -2,6 +2,8 @@ package ae.recycler.be.service.repository.here;
 
 import ae.recycler.be.model.Order;
 import ae.recycler.be.model.Vehicle;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
@@ -17,18 +19,22 @@ import java.util.Map;
 
 @Component
 public class HereAPIRepository {
-    private static String API_URL_WITH_API_KEY;
 
     @Value("${here.api-key}")
     private String API_KEY;
 
-    public HereAPIRepository(){
-        API_URL_WITH_API_KEY = String.format("https://tourplanning.hereapi.com/v3/problems?api_key=%s", API_KEY);
-    }
 
     public Mono<List<ResponseObjects.Stop>> getPickupPath(List<Vehicle> vehicles, List<Order> orders){
-        RequestObjects.Plan plan = RequestObjects.Plan.fromOrdersAndVehicles(vehicles, orders);
-        return WebClient.create(API_URL_WITH_API_KEY).post().body(Mono.just(plan), RequestObjects.Plan.class)
+        String url = String.format("https://tourplanning.hereapi.com/v3/problems?apiKey=%s", API_KEY);
+        RequestObjects.Request request = RequestObjects.Request.fromOrdersAndVehicles(orders, vehicles);
+        String json = null;
+        try {
+            json = new ObjectMapper().writeValueAsString(request);
+        }
+        catch (JsonProcessingException jpe){
+            System.out.println(jpe);
+        }
+        return WebClient.create(url).post().body(Mono.just(request), RequestObjects.Plan.class)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).retrieve()
                 .bodyToMono(ResponseObjects.Tour.class).flatMap(tour -> Mono.just(tour.getStops()));
     }

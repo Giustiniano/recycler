@@ -8,11 +8,23 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 class RequestObjects {
 
+    @Data
+    static class Request {
+        private Plan plan;
+        private FleetItem fleet;
 
+        public static Request fromOrdersAndVehicles(List<Order> orders, List<Vehicle> vehicles){
+            Request request = new Request();
+            request.plan = Plan.fromOrders(orders);
+            request.fleet = FleetItem.fromVehicles(vehicles);
+            return request;
+        }
+    }
     @Data
     static class Type {
         private String id, profile;
@@ -73,7 +85,7 @@ class RequestObjects {
     @Data
     @Builder
     static class ShiftInfo{
-        private String iso8501_datetime;
+        private String time;
         private Location location;
     }
 
@@ -83,10 +95,10 @@ class RequestObjects {
         private ShiftInfo start;
         private ShiftInfo end;
         static Shift fromVehicle(Vehicle vehicle){
-            ShiftInfo start = ShiftInfo.builder().iso8501_datetime(DateTimeFormatter.ISO_INSTANT
+            ShiftInfo start = ShiftInfo.builder().time(DateTimeFormatter.ISO_INSTANT
                     .format(vehicle.getDriver().getShiftStarts())).location(
                             new Location(vehicle.getDepotLat(), vehicle.getDepotLng())).build();
-            ShiftInfo end = ShiftInfo.builder().iso8501_datetime(DateTimeFormatter.ISO_INSTANT
+            ShiftInfo end = ShiftInfo.builder().time(DateTimeFormatter.ISO_INSTANT
                     .format(vehicle.getDriver().getShiftEnds())).location(
                     new Location(vehicle.getDepotLat(), vehicle.getDepotLng())).build();
             return new Shift(start, end);
@@ -99,12 +111,11 @@ class RequestObjects {
     @Data
     static class Plan {
         private List<Job> jobs;
-        private FleetItem fleetItem;
 
-        static Plan fromOrdersAndVehicles(List<Vehicle> vehicles, List<Order> orders){
+
+        static Plan fromOrders(List<Order> orders){
             Plan p = new Plan();
             p.jobs = orders.stream().map(Job::fromOrder).toList();
-            p.fleetItem = FleetItem.fromVehicles(vehicles);
             return p;
         }
     }
@@ -142,10 +153,10 @@ class RequestObjects {
     @AllArgsConstructor
     static class Place {
         private Location location;
-        private List<List<String>> times;
+//        private List<List<String>> times;
         private int duration;
         Place(Location location){
-            this(location, null, -1);
+            this(location, /*new ArrayList<>(),*/ 0);
         }
     }
 

@@ -8,6 +8,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Address {
-    private float lat, lng;
+    private double lat, lng;
     private String humanReadableAddress;
+    public static Address fromAddress(ae.recycler.be.model.Address address){
+        return new Address(address.getLat(), address.getLng(), address.getHumanReadableAddress());
+    }
 }

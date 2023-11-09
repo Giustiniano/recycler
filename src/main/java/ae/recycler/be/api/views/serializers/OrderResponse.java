@@ -6,6 +6,7 @@ import lombok.*;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.UUID;
 
 
@@ -14,15 +15,19 @@ import java.util.UUID;
 @EqualsAndHashCode
 @Getter
 public class OrderResponse {
-    private UUID orderId, customerId, pickupAddress;
+    private UUID orderId, customerId;
     private int boxes;
     private OrderStatusEnum orderStatus;
     private Instant createdDate;
     private Instant lastModified;
-    public static Mono<OrderResponse> fromOrder(Order order){
-        return Mono.just(OrderResponse.builder().orderId(order.getId()).pickupAddress(order.getPickupAddress()
-                        .getId()).orderStatus(order.getOrderStatus()).boxes(order.getBoxes())
+    private Address pickupAddress;
+    public static OrderResponse fromOrder(Order order){
+        return OrderResponse.builder().orderId(order.getId())
+                .pickupAddress(Address.fromAddress(order.getPickupAddress()))
+                .orderStatus(order.getOrderStatus()).boxes(order.getBoxes())
                 .customerId(order.getSubmittedBy().getId()).createdDate(order.getCreatedDate())
-                .lastModified(order.getLastModified()).build());
+                .lastModified(order.getLastModified()).build();
     }
+
+
 }

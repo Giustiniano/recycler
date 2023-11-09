@@ -2,8 +2,10 @@ package ae.recycler.be.model;
 
 import ae.recycler.be.enums.VehicleStatus;
 import ae.recycler.be.enums.VehicleType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.javatuples.Pair;
 import org.springframework.data.neo4j.core.schema.*;
 import reactor.util.function.Tuple2;
 
@@ -13,6 +15,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Node
+@AllArgsConstructor
 public class Vehicle extends BaseModel{
     @GeneratedValue
     @Id
@@ -28,17 +31,19 @@ public class Vehicle extends BaseModel{
     @Property
     private List<Order> assignedOrders;
     @Property
-    private float lat;
+    private Double lat;
     @Property
-    private float lng;
+    private Double lng;
     @Relationship(type = "HAS_DRIVER", direction = Relationship.Direction.OUTGOING)
     private Driver driver;
     @Property
-    private float depotLat;
+    private Double depotLat;
     @Property
-    private float depotLng;
+    private Double depotLng;
     @Property
     private double costDistance = 0.0001;
     @Property
     private int costTime = 0;
+
+
 }

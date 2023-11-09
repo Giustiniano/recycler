@@ -1,15 +1,15 @@
 package ae.recycler.be.model;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.temporal.ChronoField;
 import java.util.UUID;
 
@@ -17,6 +17,7 @@ import java.util.UUID;
 @Setter
 @Node
 @Builder
+@AllArgsConstructor
 public class Driver extends BaseModel {
     @GeneratedValue
     @Id
@@ -35,14 +36,12 @@ public class Driver extends BaseModel {
     private int shiftEndsMinute;
 
 
-    public Instant getShiftStarts(){
-        return Instant.now().with(ChronoField.HOUR_OF_DAY, shiftStartsHour)
-                .with(ChronoField.MINUTE_OF_DAY, shiftStartsMinute);
+    public OffsetDateTime getShiftStarts(){
+        return OffsetDateTime.now().withHour(shiftStartsHour).withMinute(shiftStartsMinute);
     }
 
-    public Instant getShiftEnds(){
-        return Instant.now().with(ChronoField.HOUR_OF_DAY, shiftEndsHour)
-                .with(ChronoField.MINUTE_OF_DAY, shiftEndsMinute);
+    public OffsetDateTime getShiftEnds(){
+        return OffsetDateTime.now().withHour(shiftEndsHour).withMinute(shiftEndsMinute);
     }
 
 }

@@ -17,6 +17,7 @@ import java.util.UUID;
 @Node
 @EqualsAndHashCode
 @ToString
+@AllArgsConstructor
 public class Order {
     @GeneratedValue
     @Id

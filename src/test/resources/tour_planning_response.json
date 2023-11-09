@@ -1,0 +1,326 @@
+{
+  "statistic": {
+    "cost": 15.9806,
+    "distance": 159806,
+    "duration": 10825,
+    "times": {
+      "driving": 10825,
+      "serving": 0,
+      "waiting": 0,
+      "stopping": 0,
+      "break": 0
+    }
+  },
+  "tours": [
+    {
+      "vehicleId": "C07322_1",
+      "typeId": "C07322",
+      "stops": [
+        {
+          "location": {
+            "lat": 24.8994493,
+            "lng": 55.0066217
+          },
+          "time": {
+            "arrival": "2023-11-09T04:00:34Z",
+            "departure": "2023-11-09T04:00:34Z"
+          },
+          "load": [
+            0
+          ],
+          "activities": [
+            {
+              "jobId": "departure",
+              "type": "departure",
+              "location": {
+                "lat": 24.8994493,
+                "lng": 55.0066217
+              },
+              "time": {
+                "start": "2023-11-09T04:00:34Z",
+                "end": "2023-11-09T04:00:34Z"
+              }
+            }
+          ],
+          "distance": 0
+        },
+        {
+          "location": {
+            "lat": 25.0672222,
+            "lng": 55.095198
+          },
+          "time": {
+            "arrival": "2023-11-09T04:24:05Z",
+            "departure": "2023-11-09T04:24:05Z"
+          },
+          "load": [
+            1
+          ],
+          "activities": [
+            {
+              "jobId": "3ee9814a-ff13-41ff-9222-5c68afccc8ce",
+              "type": "pickup",
+              "location": {
+                "lat": 25.0672222,
+                "lng": 55.095198
+              },
+              "time": {
+                "start": "2023-11-09T04:24:05Z",
+                "end": "2023-11-09T04:24:05Z"
+              }
+            }
+          ],
+          "distance": 25510
+        },
+        {
+          "location": {
+            "lat": 25.0763518,
+            "lng": 55.1393844
+          },
+          "time": {
+            "arrival": "2023-11-09T04:38:46Z",
+            "departure": "2023-11-09T04:38:46Z"
+          },
+          "load": [
+            2
+          ],
+          "activities": [
+            {
+              "jobId": "74731bf5-4d72-44fa-9766-7bbb10756e2f",
+              "type": "pickup",
+              "location": {
+                "lat": 25.0763518,
+                "lng": 55.1393844
+              },
+              "time": {
+                "start": "2023-11-09T04:38:46Z",
+                "end": "2023-11-09T04:38:46Z"
+              }
+            }
+          ],
+          "distance": 34623
+        },
+        {
+          "location": {
+            "lat": 25.1103955,
+            "lng": 55.1072183
+          },
+          "time": {
+            "arrival": "2023-11-09T05:01:01Z",
+            "departure": "2023-11-09T05:01:01Z"
+          },
+          "load": [
+            3
+          ],
+          "activities": [
+            {
+              "jobId": "10c3de91-be36-4cbd-be34-9be7cf95f698",
+              "type": "pickup",
+              "location": {
+                "lat": 25.1103955,
+                "lng": 55.1072183
+              },
+              "time": {
+                "start": "2023-11-09T05:01:01Z",
+                "end": "2023-11-09T05:01:01Z"
+              }
+            }
+          ],
+          "distance": 47502
+        },
+        {
+          "location": {
+            "lat": 25.1415548,
+            "lng": 55.1836908
+          },
+          "time": {
+            "arrival": "2023-11-09T05:24:11Z",
+            "departure": "2023-11-09T05:24:11Z"
+          },
+          "load": [
+            4
+          ],
+          "activities": [
+            {
+              "jobId": "e047fb6c-87c8-4c31-bd03-df1e78c59925",
+              "type": "pickup",
+              "location": {
+                "lat": 25.1415548,
+                "lng": 55.1836908
+              },
+              "time": {
+                "start": "2023-11-09T05:24:11Z",
+                "end": "2023-11-09T05:24:11Z"
+              }
+            }
+          ],
+          "distance": 61809
+        },
+        {
+          "location": {
+            "lat": 25.2167981,
+            "lng": 55.2276385
+          },
+          "time": {
+            "arrival": "2023-11-09T05:44:00Z",
+            "departure": "2023-11-09T05:44:00Z"
+          },
+          "load": [
+            5
+          ],
+          "activities": [
+            {
+              "jobId": "2d37e78e-be45-4080-aee5-abaa40c7d825",
+              "type": "pickup",
+              "location": {
+                "lat": 25.2167981,
+                "lng": 55.2276385
+              },
+              "time": {
+                "start": "2023-11-09T05:44:00Z",
+                "end": "2023-11-09T05:44:00Z"
+              }
+            }
+          ],
+          "distance": 74449
+        },
+        {
+          "location": {
+            "lat": 25.2515272,
+            "lng": 55.3377994
+          },
+          "time": {
+            "arrival": "2023-11-09T06:05:46Z",
+            "departure": "2023-11-09T06:05:46Z"
+          },
+          "load": [
+            6
+          ],
+          "activities": [
+            {
+              "jobId": "e8d1cdea-1e47-4260-8e5f-0e14db89eacc",
+              "type": "pickup",
+              "location": {
+                "lat": 25.2515272,
+                "lng": 55.3377994
+              },
+              "time": {
+                "start": "2023-11-09T06:05:46Z",
+                "end": "2023-11-09T06:05:46Z"
+              }
+            }
+          ],
+          "distance": 93032
+        },
+        {
+          "location": {
+            "lat": 25.1850084,
+            "lng": 55.2537523
+          },
+          "time": {
+            "arrival": "2023-11-09T06:17:28Z",
+            "departure": "2023-11-09T06:17:28Z"
+          },
+          "load": [
+            7
+          ],
+          "activities": [
+            {
+              "jobId": "2bdf2fd8-4529-454f-b6c2-4a0db92c1b1b",
+              "type": "pickup",
+              "location": {
+                "lat": 25.1850084,
+                "lng": 55.2537523
+              },
+              "time": {
+                "start": "2023-11-09T06:17:28Z",
+                "end": "2023-11-09T06:17:28Z"
+              }
+            }
+          ],
+          "distance": 107572
+        },
+        {
+          "location": {
+            "lat": 25.118107,
+            "lng": 55.1980331
+          },
+          "time": {
+            "arrival": "2023-11-09T06:25:09Z",
+            "departure": "2023-11-09T06:25:09Z"
+          },
+          "load": [
+            8
+          ],
+          "activities": [
+            {
+              "jobId": "0eb2ce02-26df-43c5-a633-6e1087e6a615",
+              "type": "pickup",
+              "location": {
+                "lat": 25.118107,
+                "lng": 55.1980331
+              },
+              "time": {
+                "start": "2023-11-09T06:25:09Z",
+                "end": "2023-11-09T06:25:09Z"
+              }
+            }
+          ],
+          "distance": 117635
+        },
+        {
+          "location": {
+            "lat": 24.8994493,
+            "lng": 55.0066217
+          },
+          "time": {
+            "arrival": "2023-11-09T07:00:59Z",
+            "departure": "2023-11-09T07:00:59Z"
+          },
+          "load": [
+            0
+          ],
+          "activities": [
+            {
+              "jobId": "arrival",
+              "type": "arrival",
+              "location": {
+                "lat": 24.8994493,
+                "lng": 55.0066217
+              },
+              "time": {
+                "start": "2023-11-09T07:00:59Z",
+                "end": "2023-11-09T07:00:59Z"
+              }
+            }
+          ],
+          "distance": 159806
+        }
+      ],
+      "statistic": {
+        "cost": 15.9806,
+        "distance": 159806,
+        "duration": 10825,
+        "times": {
+          "driving": 10825,
+          "serving": 0,
+          "waiting": 0,
+          "stopping": 0,
+          "break": 0
+        }
+      },
+      "shiftIndex": 0
+    }
+  ],
+  "unassigned": [
+    {
+      "jobId": "7ab6a911-db46-4100-95ab-8015db63ea09",
+      "reasons": [
+        {
+          "code": "TIME_WINDOW_CONSTRAINT",
+          "description": "cannot be assigned due to violation of time window"
+        }
+      ]
+    }
+  ]
+}

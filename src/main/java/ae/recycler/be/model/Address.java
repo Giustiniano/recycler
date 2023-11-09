@@ -11,15 +11,16 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
+@AllArgsConstructor
 @EqualsAndHashCode
 public class Address{
     @Id
     @GeneratedValue
     private UUID id;
     @Property
-    private float lat;
+    private double lat;
     @Property
-    private float lng;
+    private double lng;
     @Property
     private String humanReadableAddress;
 

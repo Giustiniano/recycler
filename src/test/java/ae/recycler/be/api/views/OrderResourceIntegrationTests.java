@@ -12,11 +12,11 @@ import ae.recycler.be.service.events.serializers.OrderEvent;
 import ae.recycler.be.service.repository.AddressRepository;
 import ae.recycler.be.service.repository.CustomerRepository;
 import ae.recycler.be.service.repository.OrderRepository;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.neo4j.driver.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.ParameterizedTypeReference;
@@ -65,12 +65,21 @@ public class OrderResourceIntegrationTests {
     }
 
 
-    @BeforeEach
+    @AfterEach
     public void beforeEach() {
-        orderRepository.deleteAll().then(customerRepository.deleteAll()).then(addressRepository.deleteAll()).block();
+        try(Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens
+                .basic("neo4j", neo4j.getAdminPassword()))){
+            try(Session session = driver.session()){
+                session.executeWrite(tx -> {
+                    var query = new Query("MATCH (a) DETACH DELETE a");
+                    tx.run(query);
+                    return null;
+                });
+            }
+        }
     }
 
-    static String orderApi = "/api/v1/order";
+    private static final String orderApi = "/api/v1/order";
 
     // POST
     @Test
@@ -99,7 +108,7 @@ public class OrderResourceIntegrationTests {
     // GET
     @Test
     public void testGetOrderById(){
-        Order order = OrderFactory.build();
+        Order order = new OrderFactory().build();
         orderRepository.save(order).block();
         OrderResponse orderJson = webTestClient.get().uri(String.format("%s/%s",orderApi, order.getId()))
                 .accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk()
@@ -135,7 +144,7 @@ public class OrderResourceIntegrationTests {
     @Test
     public void testUpdateOrder(){
 
-        Order order = OrderFactory.build();
+        Order order = new OrderFactory().build();
         orderRepository.save(order).block();
         Customer customer = order.getSubmittedBy();
         Address newAddress = AddressFactory.build();
@@ -164,8 +173,8 @@ public class OrderResourceIntegrationTests {
     @ParameterizedTest
     @EnumSource(value = OrderStatusEnum.class, names = {"CANCELED", "DELIVERED", "PICKED_UP", "DELIVERING"})
     public void testUpdateAddressNonUpdatableOrderStatus(OrderStatusEnum status){
-        Order order = OrderFactory.build();
-        order.getOrderStatuses().last().setOrderStatus(status);
+        Order order = new OrderFactory().build();
+        order.setOrderStatus(status);
         orderRepository.save(order).block();
         Customer customer = order.getSubmittedBy();
         Address newAddress = AddressFactory.build();
@@ -190,8 +199,8 @@ public class OrderResourceIntegrationTests {
     @ParameterizedTest
     @EnumSource(value = OrderStatusEnum.class, names = {"SUBMITTED", "ASSIGNED", "SCHEDULED", "PICKING_UP"})
     public void testUpdateAddressUpdatableOrderStatus(OrderStatusEnum status){
-        Order order = OrderFactory.build();
-        order.getOrderStatuses().last().setOrderStatus(status);
+        Order order = new OrderFactory().build();
+        order.setOrderStatus(status);
         orderRepository.save(order).block();
         Customer customer = order.getSubmittedBy();
         Address newAddress = AddressFactory.build();
@@ -206,6 +215,6 @@ public class OrderResourceIntegrationTests {
         webTestClient.patch().uri(String.format("%s/%s",orderApi, order.getId()))
                 .body(Mono.just(updateData), HashMap.class)
                 .accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk();
-        assert order.getOrderStatuses().last().getOrderStatus().equals(status);
+        assert order.getOrderStatus().equals(status);
     }
 }

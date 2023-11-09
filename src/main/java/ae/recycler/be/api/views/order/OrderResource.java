@@ -25,13 +25,14 @@ public class OrderResource {
     @ResponseBody
     public Mono<OrderResponse> submitOrder(@RequestBody Mono<NewOrderRequest> orderBody){
         return orderService.saveOrder(orderBody).switchIfEmpty(Mono.error(new RuntimeException("Unable to save order")))
-                .flatMap(OrderResponse::fromOrder);
+                .flatMap(order -> Mono.just(OrderResponse.fromOrder(order)));
     }
 
     @GetMapping(value = "{id}")
     public Mono<OrderResponse> getOrder(@PathVariable String id) {
         UUID orderId = Validators.validateOrderId(id);
-        return Mono.just(orderId).flatMap(oid -> orderService.findById(Mono.just(oid))).flatMap(OrderResponse::fromOrder)
+        return Mono.just(orderId).flatMap(oid -> orderService.findById(Mono.just(oid)))
+                .flatMap(order -> Mono.just(OrderResponse.fromOrder(order)))
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException(
                         String.format("Order with id '%s' was not found", id))));
     }
@@ -41,7 +42,7 @@ public class OrderResource {
         UUID orderId = Validators.validateOrderId(id);
         return orderUpdate.flatMap(orderUpdate1 -> orderService.updateOrder(orderId, orderUpdate1)).
                 onErrorMap(IllegalStateException.class, ex -> new UnprocessableEntityException(ex.getMessage(), null, ex))
-                .flatMap(OrderResponse::fromOrder);
+                .flatMap(order -> Mono.just(OrderResponse.fromOrder(order)));
     }
 
 
