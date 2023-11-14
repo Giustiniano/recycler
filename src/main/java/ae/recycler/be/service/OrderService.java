@@ -10,7 +10,6 @@ import ae.recycler.be.model.Vehicle;
 import ae.recycler.be.service.events.OrderEventProducer;
 import ae.recycler.be.service.events.serializers.OrderEvent;
 import ae.recycler.be.service.repository.*;
-import ae.recycler.be.service.repository.here.HereAPIRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -33,46 +32,17 @@ public class OrderService {
     private VehicleRepository vehicleRepository;
     @Autowired
     private DriverRepository driverRepository;
-    @Autowired
-    private OrderEventProducer producer;
 
 
 
-    public Mono<Order> saveOrder(Mono<NewOrderRequest> orderBody) {
-        // first make sure the user exists
-        return orderBody.flatMap(newOrderRequest1 -> customerRepository.findById(newOrderRequest1.getCustomerId())
-                .switchIfEmpty(Mono.error(new IllegalStateException("Customer not found")))
-                .flatMap(customer -> customerRepository.findCustomerAddress(
-                        newOrderRequest1.getCustomerId(), newOrderRequest1.getPickupAddress()
-                ).switchIfEmpty(Mono.error(
-                        new IllegalStateException("Cannot find pickup address in customer address list"))
-                ).flatMap(address -> orderRepository.save(Order.builder()
-                        .orderStatus(OrderStatusEnum.SUBMITTED)
-                        .pickupAddress(address).boxes(newOrderRequest1.getBoxes())
-                        .submittedBy(customer).build())
-                )));
-    }
+
+
 
     public Mono<Order> findById(Mono<UUID> orderId){
         return orderRepository.findById(orderId);
     }
 
-    public Mono<Order> updateOrder(UUID orderId, OrderUpdateRequest dataToUpdate) {
-        return orderRepository.findById(orderId).switchIfEmpty(
-                Mono.error(new IllegalStateException("Order with the given id was not found")))
-                .flatMap(this::isOrderUpdatable)
-                .flatMap(updateableOrder -> updatePickupAddress(updateableOrder, dataToUpdate.getNewPickupAddress()))
-                .flatMap(orderWithUpdatedPickupAddress -> updateStatus(orderWithUpdatedPickupAddress, dataToUpdate.getNewStatus()))
-                .flatMap(orderWithUpdatedStatus -> updateBoxes(orderWithUpdatedStatus, dataToUpdate.getNewBoxesCount()))
-                .flatMap(fullyUpdatedOrder -> orderRepository.save(fullyUpdatedOrder))
-                .flatMap(savedOrder -> producer.sendOrderEvent(OrderEvent.fromOrder(savedOrder)).flatMap(eventSendResult
-                        -> {
-                                if(eventSendResult.exception() != null){
-                                    return Mono.error(eventSendResult.exception());
-                                }
-                                return Mono.just(savedOrder);
-                        }));
-    }
+
 
 
     public Mono<List<Order>> assignOrdersToVehicle(UUID driverId, UUID vehicleId){
@@ -133,35 +103,7 @@ public class OrderService {
     }
 
 
-    private Mono<Order> isOrderUpdatable(Order order){
-        return order.isUpdateable() ? Mono.just(order) : Mono.error(
-                new IllegalStateException(String.format("Order with status %s cannot be updated",
-                        order.getOrderStatus())));
-    }
-    private Mono<Order> updatePickupAddress(Order order, UUID address){
-        if(address == null){
-            return Mono.just(order);
-        }
-        return customerRepository.findCustomerAddress(order.getSubmittedBy().getId(), address)
-                .switchIfEmpty(Mono.error(new IllegalStateException("Unable to find address"))).
-                flatMap(address1 -> {
-                    order.setPickupAddress(address1); return Mono.just(order);});
-    }
 
-    private Mono<Order> updateStatus(Order order, OrderStatusEnum newStatus){
-        if(newStatus != null){
-           order.setOrderStatus(newStatus);
-        }
-
-        return Mono.just(order);
-    }
-
-    private Mono<Order> updateBoxes(Order order, Integer newBoxesCount){
-        if(newBoxesCount != null){
-            order.setBoxes(newBoxesCount);
-        }
-        return Mono.just(order);
-    }
 
 }
 

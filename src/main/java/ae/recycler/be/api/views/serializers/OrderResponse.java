@@ -7,6 +7,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -27,6 +28,12 @@ public class OrderResponse {
                 .orderStatus(order.getOrderStatus()).boxes(order.getBoxes())
                 .customerId(order.getSubmittedBy().getId()).createdDate(order.getCreatedDate())
                 .lastModified(order.getLastModified()).build();
+    }
+    public static List<OrderResponse> fromOrders(List<Order> orders){
+        List<OrderResponse> orderResponse = new ArrayList<>(orders.size());
+        for(Order order : orders)
+            orderResponse.add(OrderResponse.fromOrder(order));
+        return orderResponse;
     }
 
 

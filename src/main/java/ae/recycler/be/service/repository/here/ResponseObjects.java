@@ -10,7 +10,7 @@ import java.util.UUID;
 public class ResponseObjects {
 
     @Data
-    static class Response {
+    public static class Response {
         private Statistic statistic;
         private List<Tour> tours;
         private List<Unassigned> unassigned;
@@ -38,6 +38,8 @@ public class ResponseObjects {
     }
 
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class Tour {
         private String vehicleId;
         private String typeId;

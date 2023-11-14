@@ -13,35 +13,31 @@ import java.util.UUID;
 
 
 @Getter
+@Setter
 @Builder
 @Node
 @EqualsAndHashCode
 @ToString
 @AllArgsConstructor
+@NoArgsConstructor
 public class Order {
     @GeneratedValue
     @Id
     private UUID id;
     @Property
-    @Setter
     private Integer boxes;
     @Relationship(type = "PICKUP_FROM", direction = Relationship.Direction.OUTGOING)
-    @Setter
     @EqualsAndHashCode.Exclude
     private Address pickupAddress;
     @Relationship(type = "SUBMITTED_BY", direction = Relationship.Direction.OUTGOING)
-    @Setter
     @EqualsAndHashCode.Exclude
     private Customer submittedBy;
-    @Setter
     @Property
     private OrderStatusEnum orderStatus;
     @Relationship(type = "DELIVER_TO", direction = Relationship.Direction.OUTGOING)
-    @Setter
     @EqualsAndHashCode.Exclude
     private Address deliveryAddresses;
     @Relationship(type = "PICKUP_WITH", direction = Relationship.Direction.OUTGOING)
-    @Setter
     @EqualsAndHashCode.Exclude
     private Vehicle assignedVehicle;
     @CreatedDate

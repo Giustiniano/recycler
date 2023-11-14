@@ -11,10 +11,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-class RequestObjects {
+public class RequestObjects {
 
     @Data
-    static class Request {
+    public static class Request {
         private Plan plan;
         private FleetItem fleet;
 
@@ -26,7 +26,7 @@ class RequestObjects {
         }
     }
     @Data
-    static class Type {
+    public static class Type {
         private String id, profile;
         private Costs costs;
         private Shift[] shifts;
@@ -45,7 +45,7 @@ class RequestObjects {
         }
     }
     @Data
-    static class FleetItem {
+    public static class FleetItem {
         private Type[] types;
         private Profile[] profiles;
         static FleetItem fromVehicles(List<Vehicle> vehicles){
@@ -64,18 +64,20 @@ class RequestObjects {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    static class Costs {
+    public static class Costs {
         private double distance = 0.0001;
         private int time = 0;
     }
     @Data
     @AllArgsConstructor
-    static class Location {
+    @NoArgsConstructor
+    public static class Location {
         private double lat, lng;
     }
     @Data
     @AllArgsConstructor
-    static class Profile {
+    @NoArgsConstructor
+    public static class Profile {
         private String name, type;
 
         static Profile fromVehicle(Vehicle v){
@@ -84,14 +86,17 @@ class RequestObjects {
     }
     @Data
     @Builder
-    static class ShiftInfo{
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ShiftInfo{
         private String time;
         private Location location;
     }
 
     @Data
     @AllArgsConstructor
-    static class Shift{
+    @NoArgsConstructor
+    public static class Shift{
         private ShiftInfo start;
         private ShiftInfo end;
         static Shift fromVehicle(Vehicle vehicle){
@@ -109,7 +114,7 @@ class RequestObjects {
     }
 
     @Data
-    static class Plan {
+    public static class Plan {
         private List<Job> jobs;
 
 
@@ -121,11 +126,11 @@ class RequestObjects {
     }
 // 84x40x34
     @Data
-    static class Job {
+    public static class Job {
         private String id;
         private Task tasks;
 
-        static Job fromOrder(Order order){
+        public static Job fromOrder(Order order){
             Job job = new Job();
             job.setId(order.getId().toString());
             Pickup p = new Pickup();
@@ -139,19 +144,21 @@ class RequestObjects {
 
     @Data
     @AllArgsConstructor
-    static class Task {
+    @NoArgsConstructor
+    public static class Task {
         private List<Pickup> pickups;
     }
 
     @Data
-    static class Pickup {
+    public static class Pickup {
         private List<Place> places;
         private List<Integer> demand;
     }
 
     @Data
     @AllArgsConstructor
-    static class Place {
+    @NoArgsConstructor
+    public static class Place {
         private Location location;
 //        private List<List<String>> times;
         private int duration;

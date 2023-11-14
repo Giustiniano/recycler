@@ -19,7 +19,7 @@ public class VehicleService {
     @Autowired
     private VehicleRepository vehicleRepository;
 
-    public Mono<List<ResponseObjects.Stop>> getItinerary(UUID vehicleId){
+    public Mono<ResponseObjects.Response> getItinerary(UUID vehicleId){
         return vehicleRepository.findById(vehicleId)
                 .switchIfEmpty(Mono.error(new IllegalStateException("Vehicle not found")))
                 .flatMap(vehicle -> hereAPIRepository.getPickupPath(List.of(vehicle), vehicle.getAssignedOrders()));

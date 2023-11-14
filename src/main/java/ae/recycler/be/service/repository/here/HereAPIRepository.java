@@ -12,7 +12,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,19 +28,14 @@ public class HereAPIRepository {
     private String API_KEY;
 
 
-    public Mono<List<ResponseObjects.Stop>> getPickupPath(List<Vehicle> vehicles, List<Order> orders){
+    public Mono<ResponseObjects.Response> getPickupPath(List<Vehicle> vehicles, List<Order> orders){
         String url = String.format("https://tourplanning.hereapi.com/v3/problems?apiKey=%s", API_KEY);
         RequestObjects.Request request = RequestObjects.Request.fromOrdersAndVehicles(orders, vehicles);
-        String json = null;
-        try {
-            json = new ObjectMapper().writeValueAsString(request);
-        }
-        catch (JsonProcessingException jpe){
-            System.out.println(jpe);
-        }
+
         return WebClient.create(url).post().body(Mono.just(request), RequestObjects.Plan.class)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).retrieve()
-                .bodyToMono(ResponseObjects.Tour.class).flatMap(tour -> Mono.just(tour.getStops()));
+                .bodyToMono(ResponseObjects.Response.class).flatMap(Mono::just)
+                .retryWhen(Retry.fixedDelay(3, Duration.of(3, ChronoUnit.SECONDS)));
     }
 
 }

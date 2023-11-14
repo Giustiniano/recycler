@@ -1,1 +1,235 @@
-{"plan":{"jobs":[{"id":"7ab6a911-db46-4100-95ab-8015db63ea09","tasks":{"pickups":[{"places":[{"location":{"lat":25.197197,"lng":46.309532},"duration":0}],"demand":[1]}]}},{"id":"e047fb6c-87c8-4c31-bd03-df1e78c59925","tasks":{"pickups":[{"places":[{"location":{"lat":25.1415548,"lng":55.1836908},"duration":0}],"demand":[1]}]}},{"id":"3ee9814a-ff13-41ff-9222-5c68afccc8ce","tasks":{"pickups":[{"places":[{"location":{"lat":25.0672222,"lng":55.095198},"duration":0}],"demand":[1]}]}},{"id":"e8d1cdea-1e47-4260-8e5f-0e14db89eacc","tasks":{"pickups":[{"places":[{"location":{"lat":25.2515272,"lng":55.3377994},"duration":0}],"demand":[1]}]}},{"id":"2d37e78e-be45-4080-aee5-abaa40c7d825","tasks":{"pickups":[{"places":[{"location":{"lat":25.2167981,"lng":55.2276385},"duration":0}],"demand":[1]}]}},{"id":"0eb2ce02-26df-43c5-a633-6e1087e6a615","tasks":{"pickups":[{"places":[{"location":{"lat":25.118107,"lng":55.1980331},"duration":0}],"demand":[1]}]}},{"id":"10c3de91-be36-4cbd-be34-9be7cf95f698","tasks":{"pickups":[{"places":[{"location":{"lat":25.1103955,"lng":55.1072183},"duration":0}],"demand":[1]}]}},{"id":"2bdf2fd8-4529-454f-b6c2-4a0db92c1b1b","tasks":{"pickups":[{"places":[{"location":{"lat":25.1850084,"lng":55.2537523},"duration":0}],"demand":[1]}]}},{"id":"74731bf5-4d72-44fa-9766-7bbb10756e2f","tasks":{"pickups":[{"places":[{"location":{"lat":25.0763518,"lng":55.1393844},"duration":0}],"demand":[1]}]}}]},"fleet":{"types":[{"id":"C07322","profile":"C07322","costs":{"distance":1.0E-4,"time":0},"shifts":[{"start":{"time":"2023-11-09T04:00:34.530354300Z","location":{"lat":24.8994493,"lng":55.0066217}},"end":{"time":"2023-11-09T14:00:34.530354300Z","location":{"lat":24.8994493,"lng":55.0066217}}}],"capacity":[10],"amount":1}],"profiles":[{"name":"C07322","type":"car"}]}}
+{
+  "plan": {
+    "jobs": [
+      {
+        "id": "7ab6a911-db46-4100-95ab-8015db63ea09",
+        "tasks": {
+          "pickups": [
+            {
+              "places": [
+                {
+                  "location": {
+                    "lat": 25.197197,
+                    "lng": 46.309532
+                  },
+                  "duration": 0
+                }
+              ],
+              "demand": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "e047fb6c-87c8-4c31-bd03-df1e78c59925",
+        "tasks": {
+          "pickups": [
+            {
+              "places": [
+                {
+                  "location": {
+                    "lat": 25.1415548,
+                    "lng": 55.1836908
+                  },
+                  "duration": 0
+                }
+              ],
+              "demand": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "3ee9814a-ff13-41ff-9222-5c68afccc8ce",
+        "tasks": {
+          "pickups": [
+            {
+              "places": [
+                {
+                  "location": {
+                    "lat": 25.0672222,
+                    "lng": 55.095198
+                  },
+                  "duration": 0
+                }
+              ],
+              "demand": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "e8d1cdea-1e47-4260-8e5f-0e14db89eacc",
+        "tasks": {
+          "pickups": [
+            {
+              "places": [
+                {
+                  "location": {
+                    "lat": 25.2515272,
+                    "lng": 55.3377994
+                  },
+                  "duration": 0
+                }
+              ],
+              "demand": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "2d37e78e-be45-4080-aee5-abaa40c7d825",
+        "tasks": {
+          "pickups": [
+            {
+              "places": [
+                {
+                  "location": {
+                    "lat": 25.2167981,
+                    "lng": 55.2276385
+                  },
+                  "duration": 0
+                }
+              ],
+              "demand": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "0eb2ce02-26df-43c5-a633-6e1087e6a615",
+        "tasks": {
+          "pickups": [
+            {
+              "places": [
+                {
+                  "location": {
+                    "lat": 25.118107,
+                    "lng": 55.1980331
+                  },
+                  "duration": 0
+                }
+              ],
+              "demand": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "10c3de91-be36-4cbd-be34-9be7cf95f698",
+        "tasks": {
+          "pickups": [
+            {
+              "places": [
+                {
+                  "location": {
+                    "lat": 25.1103955,
+                    "lng": 55.1072183
+                  },
+                  "duration": 0
+                }
+              ],
+              "demand": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "2bdf2fd8-4529-454f-b6c2-4a0db92c1b1b",
+        "tasks": {
+          "pickups": [
+            {
+              "places": [
+                {
+                  "location": {
+                    "lat": 25.1850084,
+                    "lng": 55.2537523
+                  },
+                  "duration": 0
+                }
+              ],
+              "demand": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "74731bf5-4d72-44fa-9766-7bbb10756e2f",
+        "tasks": {
+          "pickups": [
+            {
+              "places": [
+                {
+                  "location": {
+                    "lat": 25.0763518,
+                    "lng": 55.1393844
+                  },
+                  "duration": 0
+                }
+              ],
+              "demand": [
+                1
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "fleet": {
+    "types": [
+      {
+        "id": "C07322",
+        "profile": "C07322",
+        "costs": {
+          "distance": 1.0E-4,
+          "time": 0
+        },
+        "shifts": [
+          {
+            "start": {
+              "time": "2023-11-09T04:00:34.530354300Z",
+              "location": {
+                "lat": 24.8994493,
+                "lng": 55.0066217
+              }
+            },
+            "end": {
+              "time": "2023-11-09T14:00:34.530354300Z",
+              "location": {
+                "lat": 24.8994493,
+                "lng": 55.0066217
+              }
+            }
+          }
+        ],
+        "capacity": [
+          10
+        ],
+        "amount": 1
+      }
+    ],
+    "profiles": [
+      {
+        "name": "C07322",
+        "type": "car"
+      }
+    ]
+  }
+}

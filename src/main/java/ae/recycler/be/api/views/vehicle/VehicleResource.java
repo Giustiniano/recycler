@@ -42,7 +42,7 @@ public class VehicleResource {
 
     @PutMapping(value = "{id}/getItinerary", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public Mono<List<ResponseObjects.Stop>> getVehicleItinerary(@PathVariable String id) {
+    public Mono<ResponseObjects.Response> getVehicleItinerary(@PathVariable String id) {
         return vehicleService.getItinerary(UUID.fromString(id));
 
     }
