@@ -1,5 +1,6 @@
 package ae.recycler.be.api.views.driver;
 
+import ae.recycler.be.api.exceptions.UnprocessableEntityException;
 import ae.recycler.be.api.views.Validators;
 import ae.recycler.be.api.views.serializers.OrderResponse;
 import ae.recycler.be.model.Order;
@@ -29,7 +30,10 @@ public class DriverResource {
         UUID driverUUID = Validators.validateId(id, String.format("%s is not a valid driver id", id));
         UUID vehicleUUID = Validators.validateId(vehicleId, String.format("%s is not a valid vehicle id", vehicleId));
 
-        return driverService.startShift(driverUUID, vehicleUUID)
+        return driverService.startShift(driverUUID, vehicleUUID).onErrorMap(IllegalStateException.class, ex ->
+                new UnprocessableEntityException(
+                        String.format("Unable to start shift for vehicle %s and driver %s: %s",
+                                vehicleId, driverUUID, ex.getMessage()), ex))
                 .flatMap(itinerary -> Mono.just(OrderResponse.fromOrders(itinerary)));
     }
     @PutMapping(value = "{id}/endShift",  produces = MediaType.APPLICATION_JSON_VALUE)

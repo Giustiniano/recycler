@@ -34,6 +34,8 @@ public class Order {
     private Customer submittedBy;
     @Property
     private OrderStatusEnum orderStatus;
+    @Property
+    private Integer pickupOrder;
     @Relationship(type = "DELIVER_TO", direction = Relationship.Direction.OUTGOING)
     @EqualsAndHashCode.Exclude
     private Address deliveryAddresses;

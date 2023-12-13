@@ -61,22 +61,22 @@ public class AerecyclerbeApplication {
 		return new ReactiveKafkaProducerTemplate<>(SenderOptions.create(props));
 	}
 
-	@Bean
-	public ReactiveKafkaConsumerTemplate<String, OrderEvent> reactiveKafkaConsumerTemplate(
-			@Value("${ae.recycler.be.kafka.consumer.topic}") String topic) {
-		Map<String, Object> config = new HashMap<>();
-		config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapServers);
-		config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
-		config.put(ConsumerConfig.GROUP_ID_CONFIG, "recycler");
-		config.put(JsonDeserializer.TRUSTED_PACKAGES,"*");
-		config.put(JsonDeserializer.VALUE_DEFAULT_TYPE,"ae.recycler.be.service.events.serializers.OrderEvent");
-		config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-		config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-		config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-		ReceiverOptions<String, OrderEvent> basicReceiverOptions = ReceiverOptions.create(config);
-		var receiverOptions = basicReceiverOptions.subscription(Collections.singletonList(topic));
-		return new ReactiveKafkaConsumerTemplate<>(receiverOptions);
-	}
+//	@Bean
+//	public ReactiveKafkaConsumerTemplate<String, OrderEvent> reactiveKafkaConsumerTemplate(
+//			@Value("${ae.recycler.be.kafka.consumer.topic}") String topic) {
+//		Map<String, Object> config = new HashMap<>();
+//		config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapServers);
+//		config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+//		config.put(ConsumerConfig.GROUP_ID_CONFIG, "recycler");
+//		config.put(JsonDeserializer.TRUSTED_PACKAGES,"*");
+//		config.put(JsonDeserializer.VALUE_DEFAULT_TYPE,"ae.recycler.be.service.events.serializers.OrderEvent");
+//		config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+//		config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+//		config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+//		ReceiverOptions<String, OrderEvent> basicReceiverOptions = ReceiverOptions.create(config);
+//		var receiverOptions = basicReceiverOptions.subscription(Collections.singletonList(topic));
+//		return new ReactiveKafkaConsumerTemplate<>(receiverOptions);
+//	}
 
 
 

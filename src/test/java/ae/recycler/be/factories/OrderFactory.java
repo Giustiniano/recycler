@@ -58,8 +58,8 @@ public class OrderFactory {
         return new Order(id, Optional.ofNullable(boxes).orElse(1),
                 Optional.ofNullable(pickupAddress).orElse(GeocodedPlaces.BURJ_AL_ARAB),
                 Optional.ofNullable(submittedBy).orElse(CustomerFactory.build()),
-                Optional.ofNullable(orderStatus).orElse(OrderStatusEnum.SUBMITTED), deliveryAddresses, assignedVehicle,
-                null, null);}
+                Optional.ofNullable(orderStatus).orElse(OrderStatusEnum.SUBMITTED), null, deliveryAddresses,
+                assignedVehicle, null, null);}
 
 
 }
