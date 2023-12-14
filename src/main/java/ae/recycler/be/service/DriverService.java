@@ -35,7 +35,7 @@ public class DriverService {
     public Mono<List<Order>> startShift(UUID driverId, UUID vehicleId){
         return checkDriverAndVehicle(driverId, vehicleId, List.of(VehicleStatus.AT_DEPOSIT)).flatMap(driverVehicleTuple -> {
             driverVehicleTuple.getT2().setDriver(driverVehicleTuple.getT1());
-            driverVehicleTuple.getT2().setStatus(VehicleStatus.PICKING_UP);
+
             return Mono.zip(vehicleRepository.save(driverVehicleTuple.getT2()),
                             orderRepository.findOrdersByOrderStatusOrderByCreatedDateAsc(OrderStatusEnum.SUBMITTED)
                                     .collectList()).flatMap(vehicleOrders -> {
@@ -48,6 +48,7 @@ public class DriverService {
                     ).flatMap(ordersItineraryVehicle -> {
 
                 List<Order> itinerary = processHereApiRoutingResponse(ordersItineraryVehicle);
+                ordersItineraryVehicle.getT3().setStatus(VehicleStatus.PICKING_UP);
                 return Mono.zip(vehicleRepository.save(ordersItineraryVehicle.getT3()), Mono.just(itinerary));
 
                 }).flatMap(vehicleItinerary -> Mono.just(vehicleItinerary.getT2()));

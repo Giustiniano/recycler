@@ -1,5 +1,6 @@
 package ae.recycler.be;
 
+import ae.recycler.be.enums.VehicleStatus;
 import ae.recycler.be.factories.CustomerFactory;
 import ae.recycler.be.factories.DriverFactory;
 import ae.recycler.be.model.Driver;
@@ -34,8 +35,8 @@ import java.util.UUID;
 // When running the app locally, ensure you have a valid Docker environment
 class LocalDevApplication {
 
-    @SneakyThrows
-    public static void main(String[] args) {
+
+    public static void main(String[] args) throws Exception{
         var context = SpringApplication.from(AerecyclerbeApplication::main)
                 .with(LocalDevTestcontainersConfig.class)
                 .run(args);
@@ -47,6 +48,7 @@ class LocalDevApplication {
         Driver driver = new DriverFactory().setId(new UUID(0L, 0L)).build();
         Pair<List<Order>, Vehicle> ordersVehicle = TestDataFactory.fromRequest(request, CustomerFactory.build());
         ordersVehicle.getValue1().setId(new UUID(0L, 0L));
+        ordersVehicle.getValue1().setStatus(VehicleStatus.AT_DEPOSIT);
         orderRepository.saveAll(ordersVehicle.getValue0()).blockLast();
         ordersVehicle.getValue1().setDriver(driver);
         Vehicle vehicle = vehicleRepository.save(ordersVehicle.getValue1()).block();
