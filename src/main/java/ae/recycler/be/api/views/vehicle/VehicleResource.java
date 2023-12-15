@@ -1,17 +1,13 @@
 package ae.recycler.be.api.views.vehicle;
 
-import java.sql.Array;
-import java.util.ArrayList;
-
+import ae.recycler.be.api.views.Validators;
 import ae.recycler.be.api.views.serializers.OrderResponse;
-import ae.recycler.be.model.Order;
+import ae.recycler.be.api.views.serializers.OrderUpdateRequest;
 import ae.recycler.be.service.OrderService;
 import ae.recycler.be.service.VehicleService;
-import ae.recycler.be.service.repository.here.ResponseObjects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -27,23 +23,20 @@ public class VehicleResource {
     @Autowired
     private VehicleService vehicleService;
 
-    @PutMapping(value = "{id}/assignOrders", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "{id}/orders", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public Mono<List<OrderResponse>> assignOrdersToVehicle(@PathVariable String id,
-                                                           @RequestParam("driverId") String driverId) {
-        return orderService.assignOrdersToVehicle(UUID.fromString(driverId), UUID.fromString(id)).flatMap(orders -> {
-            List<OrderResponse> jsonOrders = new ArrayList<>(orders.size());
-            for (Order order : orders) {
-                jsonOrders.add(OrderResponse.fromOrder(order));
-            }
-            return Mono.just(jsonOrders);
-        });
+    public Mono<List<OrderResponse>> getAssignedOrders(@PathVariable String id) {
+        UUID vehicleId = Validators.validateId(id, String.format("%s is not a valid vehicle id", id));
+        return vehicleService.getAssignedOrders(vehicleId);
     }
 
-    @PutMapping(value = "{id}/getItinerary", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "{id}/orders/{orderId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public Mono<ResponseObjects.Response> getVehicleItinerary(@PathVariable String id) {
-        return vehicleService.getItinerary(UUID.fromString(id));
-
+    public Mono<OrderResponse> updateAssignedOrder(@PathVariable String id, @PathVariable String orderId,
+                                           @RequestBody Mono<OrderUpdateRequest> orderUpdateRequest){
+        UUID vehicleUUID = Validators.validateId(id, String.format("%s is not a valid vehicle id", id));
+        UUID orderUUID = Validators.validateId(orderId, String.format("%s is not a valid order id", orderId));
+        return orderUpdateRequest.flatMap(our -> vehicleService.updateAssignedOrderStatus(vehicleUUID, orderUUID, our));
     }
+
 }

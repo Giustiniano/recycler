@@ -1,13 +1,10 @@
 package ae.recycler.be.api.views;
 
-import ae.recycler.be.factories.DriverFactory;
-import ae.recycler.be.factories.GeocodedPlaces;
+import ae.recycler.be.enums.OrderStatusEnum;
 import ae.recycler.be.factories.OrderFactory;
 import ae.recycler.be.factories.VehicleFactory;
-import ae.recycler.be.model.Address;
 import ae.recycler.be.model.Order;
 import ae.recycler.be.model.Vehicle;
-import ae.recycler.be.service.events.serializers.OrderEvent;
 import ae.recycler.be.service.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
-import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -25,10 +21,12 @@ import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 
@@ -46,8 +44,7 @@ public class VehicleResourceIntegrationTests {
     private CustomerRepository customerRepository;
     @Autowired
     private OrderRepository orderRepository;
-    @Autowired
-    private ReactiveKafkaConsumerTemplate<String, OrderEvent> reactiveKafkaConsumerTemplate;
+
     @Autowired
     private VehicleRepository vehicleRepository;
     @Autowired
@@ -76,39 +73,23 @@ public class VehicleResourceIntegrationTests {
         }
     }
 
-    private static String assignOrdersToVehicle = "/api/v1/vehicle/%s/assignOrders?driverId=%s";
-    private static String getItinerary = "/api/v1/vehicle/%s/getItinerary";
+    private static String updateAssignedOrderStatus = "/api/v1/vehicle/%s/orders/%s";
 
     @Test
-    public void assignOrdersToVehicle(){
-        Vehicle vehicle = new VehicleFactory().build();
-        ae.recycler.be.model.Driver driver = new DriverFactory().build();
-        vehicleRepository.save(vehicle).block();
-        driverRepository.save(driver).block();
-        for(Address address: GeocodedPlaces.PICKUP_LOCATIONS){
-            orderRepository.save(new OrderFactory().setPickupAddress(address).build()).block();
-        }
-        var result = webTestClient.put().uri(String.format(assignOrdersToVehicle, vehicle.getId(), driver.getId()))
-                .accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk()
-                .expectBody(new ParameterizedTypeReference<ArrayList<HashMap<String, Object>>>() {}).returnResult();
-        System.out.println(result);
-    }
+    public void updateAssignedOrder(){
 
-    @Test
-    public void getItineraryForVehicle(){
-        ae.recycler.be.model.Driver driver = new DriverFactory().build();
-        Vehicle vehicle = new VehicleFactory().setDriver(driver).build();
-        List<Order> orders = new ArrayList<>();
-        for(Address address: GeocodedPlaces.PICKUP_LOCATIONS){
-            orders.add(new OrderFactory().setPickupAddress(address).build());
-        }
-        vehicle.setAssignedOrders(orders);
+        Vehicle vehicle = new  VehicleFactory().build();
+        Order order = new OrderFactory().build();
+        List<Order> assignedOrders = new ArrayList<>();
+        assignedOrders.add(order);
+        vehicle.setAssignedOrders(assignedOrders);
         vehicleRepository.save(vehicle).block();
-        driverRepository.save(driver).block();
-        var result = webTestClient.put().uri(String.format(getItinerary, vehicle.getId(), driver.getId()))
-                .accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk()
-                .expectBody(new ParameterizedTypeReference<ArrayList<HashMap<String, Object>>>() {}).returnResult();
-        System.out.println(result);
+        Map<String, Object> request = Map.ofEntries(Map.entry("newStatus", "PICKING_UP"));
+        Map<String, Object> response = webTestClient.put().uri(String.format(updateAssignedOrderStatus, vehicle.getId(), order.getId()))
+                .body(Mono.just(request), request.getClass()).accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk()
+                .expectBody(new ParameterizedTypeReference<HashMap<String, Object>>() {}).returnResult()
+                .getResponseBody();
+        assert orderRepository.findById(order.getId()).block().getOrderStatus().equals(OrderStatusEnum.PICKING_UP);
     }
 
 }

@@ -60,7 +60,8 @@ class LocalDevApplication {
         @RestartScope
         @ServiceConnection
         public Neo4jContainer<?> neo4jContainer() {
-            return new Neo4jContainer<>("neo4j:5.11-community");
+            return new Neo4jContainer<>("neo4j:5.11-community").withExposedPorts(7687, 7474).
+                    withAdminPassword("verysecret");
         }
 
 
