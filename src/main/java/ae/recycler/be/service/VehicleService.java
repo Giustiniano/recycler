@@ -1,5 +1,6 @@
 package ae.recycler.be.service;
 
+import ae.recycler.be.api.exceptions.ResourceNotFoundException;
 import ae.recycler.be.api.views.serializers.OrderResponse;
 import ae.recycler.be.api.views.serializers.OrderUpdateRequest;
 import ae.recycler.be.model.Vehicle;
@@ -33,7 +34,8 @@ public class VehicleService {
         return vehicleRepository.findById(vehicleUUID).switchIfEmpty(
                 Mono.error(new IllegalStateException("Vehicle not found")))
                 .flatMap(vehicle -> orderRepository.findById(orderUUID))
-                .switchIfEmpty(Mono.error(new IllegalStateException(String.format("Order with id %s not found", orderUUID))))
+                .switchIfEmpty(Mono.error(
+                        new IllegalStateException(String.format("Order with id %s not found", orderUUID))))
                 .flatMap(order -> {
                     order.setOrderStatus(our.getNewStatus());
                     return orderRepository.save(order);
@@ -45,5 +47,13 @@ public class VehicleService {
                 .switchIfEmpty(Mono.error(new IllegalStateException("Vehicle not found")));
     }
 
+
+    public Mono<OrderResponse> getAssignedOrder(UUID vehicleUUID, UUID orderUUID) {
+        return getAssignedOrders(vehicleUUID).flatMap(assignedOrders -> Mono.just(assignedOrders.stream()
+                .filter(o -> o.getOrderId().equals(orderUUID)).findFirst()
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "This order was not found among those assigned to this vehicle"))));
+    }
 
 }

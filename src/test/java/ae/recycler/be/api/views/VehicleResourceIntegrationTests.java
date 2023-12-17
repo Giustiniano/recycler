@@ -23,10 +23,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 
@@ -73,23 +70,55 @@ public class VehicleResourceIntegrationTests {
         }
     }
 
-    private static String updateAssignedOrderStatus = "/api/v1/vehicle/%s/orders/%s";
+    private static String updateAssignedOrderEndpoint = "/api/v1/vehicle/%s/orders/%s";
 
     @Test
     public void updateAssignedOrder(){
 
-        Vehicle vehicle = new  VehicleFactory().build();
+        Vehicle vehicle = new VehicleFactory().build();
         Order order = new OrderFactory().build();
         List<Order> assignedOrders = new ArrayList<>();
         assignedOrders.add(order);
         vehicle.setAssignedOrders(assignedOrders);
         vehicleRepository.save(vehicle).block();
         Map<String, Object> request = Map.ofEntries(Map.entry("newStatus", "PICKING_UP"));
-        Map<String, Object> response = webTestClient.put().uri(String.format(updateAssignedOrderStatus, vehicle.getId(), order.getId()))
+        Map<String, Object> response = webTestClient.put().uri(String.format(updateAssignedOrderEndpoint, vehicle.getId(), order.getId()))
                 .body(Mono.just(request), request.getClass()).accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk()
                 .expectBody(new ParameterizedTypeReference<HashMap<String, Object>>() {}).returnResult()
                 .getResponseBody();
         assert orderRepository.findById(order.getId()).block().getOrderStatus().equals(OrderStatusEnum.PICKING_UP);
     }
 
+    @Test
+    public void findAssignedOrder(){
+        Vehicle vehicle = new VehicleFactory().build();
+        Order order = new OrderFactory().build();
+        List<Order> assignedOrders = new ArrayList<>();
+        assignedOrders.add(order);
+        vehicle.setAssignedOrders(assignedOrders);
+        vehicleRepository.save(vehicle).block();
+        order = vehicle.getAssignedOrders().get(0);
+        Map<String, Object> response = webTestClient.get()
+                .uri(String.format(updateAssignedOrderEndpoint, vehicle.getId(), order.getId()))
+                .accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk()
+                .expectBody(new ParameterizedTypeReference<HashMap<String, Object>>() {})
+                .returnResult().getResponseBody();
+        assert UUID.fromString((String) response.get("orderId")).equals(order.getId());
+        assert UUID.fromString((String) response.get("customerId")).equals(order.getSubmittedBy().getId());
+        assert response.get("boxes").equals(order.getBoxes());
+        Map<String, Object> actualAddress = (Map<String, Object>) response.get("pickupAddress");
+        assert actualAddress.get("lat").equals(order.getPickupAddress().getLat());
+        assert actualAddress.get("lng").equals(order.getPickupAddress().getLng());
+        assert actualAddress.get("humanReadableAddress").equals(order.getPickupAddress().getHumanReadableAddress());
+
+    }
+    @Test
+    public void findUnassignedOrder(){
+        Vehicle vehicle = new VehicleFactory().build();
+        vehicleRepository.save(vehicle).block();
+        Order order = orderRepository.save(new OrderFactory().build()).block();
+        webTestClient.get()
+                .uri(String.format(updateAssignedOrderEndpoint, vehicle.getId(), order.getId()))
+                .accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isNotFound();
+    }
 }
