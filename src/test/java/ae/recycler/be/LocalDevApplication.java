@@ -40,6 +40,16 @@ class LocalDevApplication {
         var context = SpringApplication.from(AerecyclerbeApplication::main)
                 .with(LocalDevTestcontainersConfig.class)
                 .run(args);
+        buildTestDataAndStartBackend(context);
+        //buildSimpleOrderWithPickupAddressAndTestCustomQuery(context);
+        //getOrderBeingPickedUp(context);
+    }
+
+
+
+
+
+    private static void buildTestDataAndStartBackend(SpringApplication.Running context) throws Exception{
         RequestObjects.Request request = new ObjectMapper().readValue(Path.of("src","test","resources",
                 "tour_planning_request.json").toFile(), RequestObjects.Request.class);
         var driverRepository = context.getApplicationContext().getBean("driverRepository", DriverRepository.class);

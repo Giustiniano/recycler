@@ -31,6 +31,7 @@ public class Vehicle extends BaseModel{
     @Property
     private VehicleStatus status;
     @Property
+    @Relationship(value = "PICKUP_WITH", direction = Relationship.Direction.INCOMING)
     private List<Order> assignedOrders;
     @Property
     private Double lat;

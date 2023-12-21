@@ -70,7 +70,8 @@ public class VehicleResourceIntegrationTests {
         }
     }
 
-    private static String updateAssignedOrderEndpoint = "/api/v1/vehicle/%s/orders/%s";
+    private static final String assignedOrderEndpoint = "/api/v1/vehicle/%s/orders/%s";
+    private static final String nextOrderToPickupEndpoint = "/api/v1/vehicle/%s/orders/next";
 
     @Test
     public void updateAssignedOrder(){
@@ -81,12 +82,12 @@ public class VehicleResourceIntegrationTests {
         assignedOrders.add(order);
         vehicle.setAssignedOrders(assignedOrders);
         vehicleRepository.save(vehicle).block();
-        Map<String, Object> request = Map.ofEntries(Map.entry("newStatus", "PICKING_UP"));
-        Map<String, Object> response = webTestClient.put().uri(String.format(updateAssignedOrderEndpoint, vehicle.getId(), order.getId()))
+        Map<String, Object> request = Map.ofEntries(Map.entry("newStatus", "PICKED_UP"));
+        Map<String, Object> response = webTestClient.put().uri(String.format(assignedOrderEndpoint, vehicle.getId(), order.getId()))
                 .body(Mono.just(request), request.getClass()).accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk()
                 .expectBody(new ParameterizedTypeReference<HashMap<String, Object>>() {}).returnResult()
                 .getResponseBody();
-        assert orderRepository.findById(order.getId()).block().getOrderStatus().equals(OrderStatusEnum.PICKING_UP);
+        assert orderRepository.findById(order.getId()).block().getOrderStatus().equals(OrderStatusEnum.PICKED_UP);
     }
 
     @Test
@@ -99,7 +100,7 @@ public class VehicleResourceIntegrationTests {
         vehicleRepository.save(vehicle).block();
         order = vehicle.getAssignedOrders().get(0);
         Map<String, Object> response = webTestClient.get()
-                .uri(String.format(updateAssignedOrderEndpoint, vehicle.getId(), order.getId()))
+                .uri(String.format(assignedOrderEndpoint, vehicle.getId(), order.getId()))
                 .accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk()
                 .expectBody(new ParameterizedTypeReference<HashMap<String, Object>>() {})
                 .returnResult().getResponseBody();
@@ -118,7 +119,90 @@ public class VehicleResourceIntegrationTests {
         vehicleRepository.save(vehicle).block();
         Order order = orderRepository.save(new OrderFactory().build()).block();
         webTestClient.get()
-                .uri(String.format(updateAssignedOrderEndpoint, vehicle.getId(), order.getId()))
+                .uri(String.format(assignedOrderEndpoint, vehicle.getId(), order.getId()))
                 .accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isNotFound();
+    }
+    @Test
+    public void getNextOrderToPickupNoOrderBeingPickedUp(){
+        List<Order> assignedOrder = new ArrayList<>();
+        for (int i = 1; i<3; i++){
+            assignedOrder.add(new OrderFactory().setPickupOrder(i).setOrderStatus(OrderStatusEnum.ASSIGNED).build());
+        }
+        Vehicle v = new VehicleFactory().setAssignedOrders(assignedOrder).build();
+        vehicleRepository.save(v).block();
+        Map<String, Object> response = webTestClient.get()
+                .uri(String.format(nextOrderToPickupEndpoint, v.getId())).accept(MediaType.APPLICATION_JSON).exchange()
+                .expectStatus().isOk().expectBody(new ParameterizedTypeReference<HashMap<String, Object>>() {})
+                .returnResult().getResponseBody();
+        Order expectedOrder = assignedOrder.stream().filter(o -> o.getPickupOrder().equals(1)).findFirst().get();
+        assert UUID.fromString((String) response.get("id")).equals(expectedOrder.getId());
+        assert response.get("boxes").equals(expectedOrder.getBoxes());
+        assert response.get("orderStatus").equals("PICKING_UP");
+        Map<String, Object> responsePickupAddress = ((Map<String, Object>) response.get("pickupAddress"));
+        assert responsePickupAddress.get("lat").equals(expectedOrder.getPickupAddress().getLat());
+        assert responsePickupAddress.get("lng").equals(expectedOrder.getPickupAddress().getLng());
+        assert responsePickupAddress.get("humanReadableAddress").equals(expectedOrder.getPickupAddress()
+                .getHumanReadableAddress());
+        assert UUID.fromString((String) response.get("customerId")).equals(expectedOrder.getSubmittedBy().getId());
+
+
+        Order returnedOrder = orderRepository.findById(Mono.just(UUID.fromString((String) response.get("id")))).block();
+        assert returnedOrder.getPickupOrder() == 1;
+        assert returnedOrder.getOrderStatus().equals(OrderStatusEnum.PICKING_UP);
+        assert returnedOrder.getAssignedVehicle().equals(v);
+        assert returnedOrder.getSubmittedBy().equals(expectedOrder.getSubmittedBy());
+        assert returnedOrder.getPickupAddress().equals(expectedOrder.getPickupAddress());
+
+    }
+
+    @Test
+    public void getNextOrderToPickupGetOrderBeingPickedUp(){
+        List<Order> assignedOrder = new ArrayList<>();
+        assignedOrder.add(new OrderFactory().setPickupOrder(1).setOrderStatus(OrderStatusEnum.PICKING_UP).build());
+        assignedOrder.add(new OrderFactory().setPickupOrder(2).setOrderStatus(OrderStatusEnum.ASSIGNED).build());
+        assignedOrder.add(new OrderFactory().setPickupOrder(3).setOrderStatus(OrderStatusEnum.ASSIGNED).build());
+
+        Vehicle v = new VehicleFactory().setAssignedOrders(assignedOrder).build();
+        vehicleRepository.save(v).block();
+        Map<String, Object> response = webTestClient.get()
+                .uri(String.format(nextOrderToPickupEndpoint, v.getId())).accept(MediaType.APPLICATION_JSON).exchange()
+                .expectStatus().isOk().expectBody(new ParameterizedTypeReference<HashMap<String, Object>>() {})
+                .returnResult().getResponseBody();
+        Order expectedOrder = assignedOrder.stream().filter(o -> o.getOrderStatus().equals(OrderStatusEnum.PICKING_UP)).findFirst().get();
+        assert UUID.fromString((String) response.get("id")).equals(expectedOrder.getId());
+        assert response.get("boxes").equals(expectedOrder.getBoxes());
+        assert response.get("orderStatus").equals("PICKING_UP");
+        Map<String, Object> responsePickupAddress = ((Map<String, Object>) response.get("pickupAddress"));
+        assert responsePickupAddress.get("lat").equals(expectedOrder.getPickupAddress().getLat());
+        assert responsePickupAddress.get("lng").equals(expectedOrder.getPickupAddress().getLng());
+        assert responsePickupAddress.get("humanReadableAddress").equals(expectedOrder.getPickupAddress()
+                .getHumanReadableAddress());
+        assert UUID.fromString((String) response.get("customerId")).equals(expectedOrder.getSubmittedBy().getId());
+
+
+        Order returnedOrder = orderRepository.findById(Mono.just(UUID.fromString((String) response.get("id")))).block();
+        assert returnedOrder.getPickupOrder() == 1;
+        assert returnedOrder.getOrderStatus().equals(OrderStatusEnum.PICKING_UP);
+        assert returnedOrder.getAssignedVehicle().equals(v);
+        assert returnedOrder.getSubmittedBy().equals(expectedOrder.getSubmittedBy());
+        assert returnedOrder.getPickupAddress().equals(expectedOrder.getPickupAddress());
+
+    }
+    @Test
+    public void getNextOrderToPickupNoMoreOrders(){
+        List<Order> assignedOrder = new ArrayList<>();
+        assignedOrder.add(new OrderFactory().setPickupOrder(1).setOrderStatus(OrderStatusEnum.PICKED_UP).build());
+        assignedOrder.add(new OrderFactory().setPickupOrder(2).setOrderStatus(OrderStatusEnum.PICKED_UP).build());
+        assignedOrder.add(new OrderFactory().setPickupOrder(3).setOrderStatus(OrderStatusEnum.PICKED_UP).build());
+
+        Vehicle v = new VehicleFactory().setAssignedOrders(assignedOrder).build();
+        vehicleRepository.save(v).block();
+        Map<String, Object> response = webTestClient.get()
+                .uri(String.format(nextOrderToPickupEndpoint, v.getId())).accept(MediaType.APPLICATION_JSON).exchange()
+                .expectStatus().isOk().expectBody(new ParameterizedTypeReference<HashMap<String, Object>>() {})
+                .returnResult().getResponseBody();
+
+        assert response == null;
+
     }
 }

@@ -22,11 +22,18 @@ public interface OrderRepository extends ReactiveCrudRepository<Order, UUID> {
             MATCH (v:Vehicle {id:$vehicleId})
             OPTIONAL MATCH (assigned_order_address:Address)<-[r_assigned_order_address:PICKUP_FROM]-
             (assigned_order:Order {orderStatus: "ASSIGNED"})-[r_ao_pw:PICKUP_WITH]->(v)
+            OPTIONAL MATCH (assigned_order_customer:Customer)<-[r_assigned_order_submitter:SUBMITTED_BY]-(assigned_order)
             OPTIONAL MATCH (current_order_address)<-[r_current_order_address:PICKUP_FROM]-
             (current_order:Order {orderStatus: "PICKING_UP"})-[r_co_pw:PICKUP_WITH]->(v)
+            OPTIONAL MATCH (current_order_customer:Customer)<-[r_current_order_submitter:SUBMITTED_BY]-(current_order)
             WITH current_order_address, r_current_order_address, current_order, r_co_pw, assigned_order_address,
-            r_assigned_order_address, v, r_ao_pw, assigned_order ORDER BY assigned_order.pickupOrder ASC LIMIT 1
-            return v, coalesce(current_order_address, assigned_order_address), 
+            r_assigned_order_address, v, r_ao_pw, current_order_customer, assigned_order_customer,
+            r_assigned_order_submitter, r_current_order_submitter,
+            assigned_order ORDER BY assigned_order.pickupOrder ASC LIMIT 1
+            SET coalesce(current_order, assigned_order).orderStatus = "PICKING_UP"
+            return v, coalesce(current_order_address, assigned_order_address),
+            coalesce(current_order_customer, assigned_order_customer),
+            coalesce(r_current_order_submitter, r_assigned_order_submitter),
             coalesce(r_current_order_address, r_assigned_order_address), coalesce(current_order, assigned_order),
             coalesce(r_co_pw, r_ao_pw)
             """)

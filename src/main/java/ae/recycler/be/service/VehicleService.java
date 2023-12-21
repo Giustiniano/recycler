@@ -50,10 +50,19 @@ public class VehicleService {
 
     public Mono<OrderResponse> getAssignedOrder(UUID vehicleUUID, UUID orderUUID) {
         return getAssignedOrders(vehicleUUID).flatMap(assignedOrders -> Mono.just(assignedOrders.stream()
-                .filter(o -> o.getOrderId().equals(orderUUID)).findFirst()
+                .filter(o -> o.getId().equals(orderUUID)).findFirst()
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "This order was not found among those assigned to this vehicle"))));
     }
 
+    public Mono<OrderResponse> getNextOrderToPickup(UUID vehicleUUID) {
+
+
+
+        return vehicleRepository.findById(vehicleUUID)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Vehicle not found")))
+                .flatMap(vehicle -> orderRepository.findOrderBeingPickedUpOrNextToPickup(vehicleUUID)
+                        .flatMap(order -> Mono.justOrEmpty(OrderResponse.fromOrder(order))));
+    }
 }

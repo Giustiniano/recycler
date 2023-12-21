@@ -12,7 +12,7 @@ import java.util.*;
 @Setter
 public class OrderFactory {
     private UUID id;
-    private Integer boxes;
+    private Integer boxes, pickupOrder;
     private Address pickupAddress;
     private Customer submittedBy;
     private OrderStatusEnum orderStatus;
@@ -54,11 +54,16 @@ public class OrderFactory {
         return this;
     }
 
+    public OrderFactory setPickupOrder(int pickupOrder){
+        this.pickupOrder = pickupOrder;
+        return this;
+    }
+
     public Order build(){
         return new Order(id, Optional.ofNullable(boxes).orElse(1),
                 Optional.ofNullable(pickupAddress).orElse(GeocodedPlaces.BURJ_AL_ARAB),
                 Optional.ofNullable(submittedBy).orElse(CustomerFactory.build()),
-                Optional.ofNullable(orderStatus).orElse(OrderStatusEnum.SUBMITTED), null, deliveryAddresses,
+                Optional.ofNullable(orderStatus).orElse(OrderStatusEnum.SUBMITTED), pickupOrder, deliveryAddresses,
                 assignedVehicle, null, null);}
 
 

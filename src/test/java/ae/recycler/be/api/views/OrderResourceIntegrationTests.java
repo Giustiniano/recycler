@@ -94,7 +94,7 @@ public class OrderResourceIntegrationTests {
                 .accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isCreated()
                 .expectBody(new ParameterizedTypeReference<OrderResponse>() {}).returnResult().getResponseBody();
         assert orderJson != null;
-        assert orderJson.getOrderId() != null;
+        assert orderJson.getId() != null;
         assert orderJson.getOrderStatus().equals(OrderStatusEnum.SUBMITTED);
         assert orderJson.getBoxes() == 10;
         assert orderJson.getCreatedDate() != null;
@@ -113,7 +113,7 @@ public class OrderResourceIntegrationTests {
         OrderResponse orderJson = webTestClient.get().uri(String.format("%s/%s",orderApi, order.getId()))
                 .accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk()
                 .expectBody(new ParameterizedTypeReference<OrderResponse>() {}).returnResult().getResponseBody();
-        assert orderJson.getOrderId().equals(order.getId());
+        assert orderJson.getId().equals(order.getId());
     }
 
     @Test

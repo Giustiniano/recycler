@@ -47,6 +47,11 @@ public class VehicleResource {
         UUID vehicleUUID = parsedUUIDs.getValue0(); UUID orderUUID = parsedUUIDs.getValue1();
         return vehicleService.getAssignedOrder(vehicleUUID, orderUUID);
     }
+    @GetMapping(value = "{vehicleId}/orders/next", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<OrderResponse> getNextOrderToPickup(@PathVariable String vehicleId){
+        UUID vehicleUUID = Validators.validateId(vehicleId, String.format("%s is not a valid vehicle id", vehicleId));
+        return vehicleService.getNextOrderToPickup(vehicleUUID);
+    }
 
     private Pair<UUID, UUID> parseVehicleAndOrderIds(String vehicleId, String orderId){
         UUID vehicleUUID = Validators.validateId(vehicleId, String.format("%s is not a valid vehicle id", vehicleId));

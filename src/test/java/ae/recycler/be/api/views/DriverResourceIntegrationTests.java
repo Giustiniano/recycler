@@ -20,7 +20,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.GraphDatabase;
@@ -44,9 +43,6 @@ import reactor.core.publisher.Mono;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -133,7 +129,7 @@ public class DriverResourceIntegrationTests {
                 .getResponseBody();
 
         // check that the itinerary order is preserved
-        List<UUID> actualOrdersItineraryUUID = actualOrdersItinerary.stream().map(OrderResponse::getOrderId).toList();
+        List<UUID> actualOrdersItineraryUUID = actualOrdersItinerary.stream().map(OrderResponse::getId).toList();
         List<UUID> expectedOrdersItinerary = new ArrayList<>();
         for(ResponseObjects.Stop stop : response.getTours().get(0).getStops()){
             if(stop.getActivities().get(0).getJobId().equals("departure") ||
