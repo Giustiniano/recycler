@@ -15,8 +15,13 @@ public interface OrderRepository extends ReactiveCrudRepository<Order, UUID> {
 
 
     Flux<Order> findOrdersByOrderStatusOrderByCreatedDateAsc(OrderStatusEnum status);
-    Flux<Order> findOrdersByAssignedVehicleAndOrderStatusOrderByPickupOrderAsc(Vehicle assignedVehicle,
-                                                                               OrderStatusEnum orderStatusEnum);
+    @Query("""
+            MATCH (v:Vehicle {id:$vehicleId})<-[r_pw:PICKUP_WITH]-(`order`:Order)
+            MATCH (`order`)-[r_pf:PICKUP_FROM]->(pickupAddress:Address)
+            MATCH (`order`)-[r_sb:SUBMITTED_BY]->(submitter:Customer)
+            RETURN `order` ORDER BY order.pickupOrder ASC, v, r_pw, r_pf, pickupAddress, submitter
+            """)
+    Flux<Order> findOrdersByAssignedVehicleOrderByPickupOrderAsc(@Param("vehicleId") UUID vehicleId);
 
     @Query("""
             MATCH (v:Vehicle {id:$vehicleId})

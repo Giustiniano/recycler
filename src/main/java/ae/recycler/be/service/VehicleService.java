@@ -57,9 +57,6 @@ public class VehicleService {
     }
 
     public Mono<OrderResponse> getNextOrderToPickup(UUID vehicleUUID) {
-
-
-
         return vehicleRepository.findById(vehicleUUID)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Vehicle not found")))
                 .flatMap(vehicle -> orderRepository.findOrderBeingPickedUpOrNextToPickup(vehicleUUID)

@@ -67,8 +67,7 @@ public class DriverResourceIntegrationTests {
     private CustomerRepository customerRepository;
     @Autowired
     private OrderRepository orderRepository;
-    @Autowired
-    private ReactiveKafkaConsumerTemplate<String, OrderEvent> reactiveKafkaConsumerTemplate;
+
     @Autowired
     private VehicleRepository vehicleRepository;
     @Autowired
@@ -121,15 +120,15 @@ public class DriverResourceIntegrationTests {
         orderRepository.saveAll(ordersVehicle.getValue0()).blockLast();
         ordersVehicle.getValue1().setDriver(driver);
         Vehicle vehicle = vehicleRepository.save(ordersVehicle.getValue1()).block();
-        Scanner keyboard = new Scanner(System.in);
-        keyboard.nextInt();
-        List<OrderResponse> actualOrdersItinerary = webTestClient.put().uri(format(startShiftEndpoint, driver.getId(),
+        OrderResponse firstOrderToPickup = webTestClient.put().uri(format(startShiftEndpoint, driver.getId(),
                 vehicle.getId())).exchange().expectStatus().isOk()
-                .expectBody(new ParameterizedTypeReference<List<OrderResponse>>() {}).returnResult()
+                .expectBody(new ParameterizedTypeReference<OrderResponse>() {}).returnResult()
                 .getResponseBody();
 
         // check that the itinerary order is preserved
-        List<UUID> actualOrdersItineraryUUID = actualOrdersItinerary.stream().map(OrderResponse::getId).toList();
+        List<UUID> actualOrdersItineraryUUID = orderRepository
+                .findOrdersByAssignedVehicleOrderByPickupOrderAsc(vehicle.getId()).collectList().block().stream()
+                .map(Order::getId).toList();
         List<UUID> expectedOrdersItinerary = new ArrayList<>();
         for(ResponseObjects.Stop stop : response.getTours().get(0).getStops()){
             if(stop.getActivities().get(0).getJobId().equals("departure") ||

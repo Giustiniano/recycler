@@ -25,7 +25,7 @@ public class DriverResource {
     private DriverService driverService;
     @PutMapping(value = "{id}/startShift",  produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public Mono<List<OrderResponse>> startShift(@PathVariable String id,
+    public Mono<OrderResponse> startShift(@PathVariable String id,
                                                      @RequestParam("vehicleId") String vehicleId){
         UUID driverUUID = Validators.validateId(id, String.format("%s is not a valid driver id", id));
         UUID vehicleUUID = Validators.validateId(vehicleId, String.format("%s is not a valid vehicle id", vehicleId));
@@ -34,7 +34,7 @@ public class DriverResource {
                 new UnprocessableEntityException(
                         String.format("Unable to start shift for vehicle %s and driver %s: %s",
                                 vehicleId, driverUUID, ex.getMessage()), ex))
-                .flatMap(itinerary -> Mono.just(OrderResponse.fromOrders(itinerary)));
+                .flatMap(firstPickup -> Mono.justOrEmpty(OrderResponse.fromOrder(firstPickup)));
     }
     @PutMapping(value = "{id}/endShift",  produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody

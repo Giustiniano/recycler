@@ -31,7 +31,7 @@ public class RestWebExceptionHandler {
                 Mono.just(new ApiError(HttpStatus.BAD_REQUEST, ex.getMessage(), ex.getDetail())));
     }
     @ExceptionHandler(UnprocessableEntityException.class)
-    public ResponseEntity<Mono<ApiError>> badRequest(UnprocessableEntityException ex) {
+    public ResponseEntity<Mono<ApiError>> unprocessableEntity(UnprocessableEntityException ex) {
         log.debug("handling exception::" + ex);
         return ResponseEntity.unprocessableEntity().contentType(MediaType.APPLICATION_JSON).body(
                 Mono.just(new ApiError(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage(), ex.getDetail())));

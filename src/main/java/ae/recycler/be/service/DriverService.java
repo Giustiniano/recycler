@@ -32,7 +32,7 @@ public class DriverService {
     @Autowired
     private HereAPIRepository hereAPIRepository;
 
-    public Mono<List<Order>> startShift(UUID driverId, UUID vehicleId){
+    public Mono<Order> startShift(UUID driverId, UUID vehicleId){
         return checkDriverAndVehicle(driverId, vehicleId, List.of(VehicleStatus.AT_DEPOSIT)).flatMap(driverVehicleTuple -> {
             driverVehicleTuple.getT2().setDriver(driverVehicleTuple.getT1());
 
@@ -49,7 +49,7 @@ public class DriverService {
 
                 List<Order> itinerary = processHereApiRoutingResponse(ordersItineraryVehicle);
                 ordersItineraryVehicle.getT3().setStatus(VehicleStatus.PICKING_UP);
-                return Mono.zip(vehicleRepository.save(ordersItineraryVehicle.getT3()), Mono.just(itinerary));
+                return Mono.zip(vehicleRepository.save(ordersItineraryVehicle.getT3()), Mono.justOrEmpty(!itinerary.isEmpty() ? itinerary.get(0) : null));
 
                 }).flatMap(vehicleItinerary -> Mono.just(vehicleItinerary.getT2()));
         });
