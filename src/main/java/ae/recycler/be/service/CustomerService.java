@@ -1,8 +1,10 @@
 package ae.recycler.be.service;
 
+import ae.recycler.be.api.views.serializers.Address;
 import ae.recycler.be.api.views.serializers.NewOrderRequest;
 import ae.recycler.be.api.views.serializers.OrderUpdateRequest;
 import ae.recycler.be.enums.OrderStatusEnum;
+import ae.recycler.be.model.Customer;
 import ae.recycler.be.model.Order;
 import ae.recycler.be.service.events.OrderEventProducer;
 import ae.recycler.be.service.events.serializers.OrderEvent;
@@ -56,6 +58,12 @@ public class CustomerService {
                     }
                     return Mono.just(savedOrder);
                 }));
+    }
+
+    public Mono<Address> saveCustomerAddress(UUID customerId, Address address){
+        return customerRepository.saveNewCustomerAddress(customerId, address.toMap())
+                .map(Address::fromAddress).switchIfEmpty(Mono.error(
+                new IllegalArgumentException("Address not saved, customer was not found")));
     }
     private Mono<Order> isOrderUpdatable(Order order){
         return order.isUpdateable() ? Mono.just(order) : Mono.error(

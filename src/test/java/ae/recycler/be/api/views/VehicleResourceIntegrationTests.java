@@ -126,7 +126,7 @@ public class VehicleResourceIntegrationTests {
     public void getNextOrderToPickupNoOrderBeingPickedUp(){
         List<Order> assignedOrder = new ArrayList<>();
         for (int i = 1; i<3; i++){
-            assignedOrder.add(new OrderFactory().setPickupOrder(i).setOrderStatus(OrderStatusEnum.ASSIGNED).build());
+            assignedOrder.add(new OrderFactory().setPickupOrder(i).setOrderStatus(OrderStatusEnum.ASSIGNED).setBoxes(i).build());
         }
         Vehicle v = new VehicleFactory().setAssignedOrders(assignedOrder).build();
         vehicleRepository.save(v).block();
