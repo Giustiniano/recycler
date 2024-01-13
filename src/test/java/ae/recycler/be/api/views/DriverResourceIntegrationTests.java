@@ -9,7 +9,6 @@ import ae.recycler.be.factories.VehicleFactory;
 import ae.recycler.be.model.Driver;
 import ae.recycler.be.model.Order;
 import ae.recycler.be.model.Vehicle;
-import ae.recycler.be.service.events.serializers.OrderEvent;
 import ae.recycler.be.service.repository.*;
 import ae.recycler.be.service.repository.here.HereAPIRepository;
 import ae.recycler.be.service.repository.here.RequestObjects;
@@ -29,7 +28,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
-import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -45,7 +43,6 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.UUID;
 
 import static java.lang.String.format;
@@ -116,7 +113,7 @@ public class DriverResourceIntegrationTests {
 
         Mockito.when(hereAPIRepository.getPickupPath(Mockito.any(), Mockito.anyList())).thenReturn(Mono.just(response));
         Driver driver = new DriverFactory().build();
-        Pair<List<Order>, Vehicle> ordersVehicle = TestDataFactory.fromRequest(request, CustomerFactory.build());
+        Pair<List<Order>, Vehicle> ordersVehicle = TestDataFactory.fromRequest(request, CustomerFactory.buildRandom());
         orderRepository.saveAll(ordersVehicle.getValue0()).blockLast();
         ordersVehicle.getValue1().setDriver(driver);
         Vehicle vehicle = vehicleRepository.save(ordersVehicle.getValue1()).block();

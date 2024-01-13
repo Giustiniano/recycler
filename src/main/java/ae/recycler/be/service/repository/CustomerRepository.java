@@ -27,4 +27,5 @@ public interface CustomerRepository extends ReactiveCrudRepository<Customer, UUI
         newAddress.floor as floor
     """)
     Mono<Address> saveNewCustomerAddress(@Param("customerId") UUID customerID, @Param("address") Map<String, Object> address);
+    
 }

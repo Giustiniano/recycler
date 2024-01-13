@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -65,6 +66,13 @@ public class CustomerService {
                 .map(Address::fromAddress).switchIfEmpty(Mono.error(
                 new IllegalArgumentException("Address not saved, customer was not found")));
     }
+
+    public Mono<List<Address>> getCustomerAddresses(UUID customerId){
+        return customerRepository.findById(customerId)
+                .map(Customer::getAddresses).map(Address::fromAddress)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Customer not found")));
+    }
+
     private Mono<Order> isOrderUpdatable(Order order){
         return order.isUpdateable() ? Mono.just(order) : Mono.error(
                 new IllegalStateException(String.format("Order with status %s cannot be updated",

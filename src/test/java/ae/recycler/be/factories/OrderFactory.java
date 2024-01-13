@@ -3,8 +3,6 @@ package ae.recycler.be.factories;
 import ae.recycler.be.enums.OrderStatusEnum;
 import ae.recycler.be.model.*;
 import lombok.*;
-import org.springframework.data.neo4j.core.schema.Property;
-import org.springframework.data.neo4j.core.schema.Relationship;
 
 import java.util.*;
 
@@ -62,7 +60,7 @@ public class OrderFactory {
     public Order build(){
         return new Order(id, Optional.ofNullable(boxes).orElse(1),
                 Optional.ofNullable(pickupAddress).orElse(GeocodedPlaces.BURJ_AL_ARAB),
-                Optional.ofNullable(submittedBy).orElse(CustomerFactory.build()),
+                Optional.ofNullable(submittedBy).orElse(CustomerFactory.buildRandom()),
                 Optional.ofNullable(orderStatus).orElse(OrderStatusEnum.SUBMITTED), pickupOrder, deliveryAddresses,
                 assignedVehicle, null, null);}
 

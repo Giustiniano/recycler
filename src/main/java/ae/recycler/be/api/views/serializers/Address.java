@@ -5,8 +5,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Getter
@@ -19,6 +21,10 @@ public class Address {
         return new Address(address.getId(), address.getLat(), address.getLng(), address.getHumanReadableAddress(),
                 address.getEmirate(), address.getStreetName(), address.getArea(), address.getHouseOrAptNumber(),
                 address.getFloor());
+    }
+
+    public static List<Address> fromAddress(List<ae.recycler.be.model.Address> addresses){
+        return addresses.stream().map(Address::fromAddress).collect(Collectors.toList());
     }
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();

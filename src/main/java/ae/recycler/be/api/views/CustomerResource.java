@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -19,10 +20,17 @@ public class CustomerResource {
     private CustomerService customerService;
     @PostMapping(value = "{id}/address", produces = MediaType.APPLICATION_JSON_VALUE,consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<Address> saveNewCustomerAddress(@PathVariable String id,
-                                          @RequestBody Mono<Address> customerAddress){
+    public Mono<Address> saveNewCustomerAddress(@PathVariable String id, @RequestBody Mono<Address> customerAddress){
 
         UUID customerUUID = Validators.validateId(id, "Customer id is not a valid UUID");
         return customerAddress.flatMap(ca -> customerService.saveCustomerAddress(customerUUID, ca));
+    }
+
+    @GetMapping(value = "{id}/address", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<List<Address>> getCustomerAddresses(@PathVariable String id){
+
+        UUID customerUUID = Validators.validateId(id, "Customer id is not a valid UUID");
+        return customerService.getCustomerAddresses(customerUUID);
     }
 }
