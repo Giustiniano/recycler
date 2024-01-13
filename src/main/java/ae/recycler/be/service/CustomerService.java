@@ -2,6 +2,7 @@ package ae.recycler.be.service;
 
 import ae.recycler.be.api.views.serializers.Address;
 import ae.recycler.be.api.views.serializers.NewOrderRequest;
+import ae.recycler.be.api.views.serializers.OrderResponse;
 import ae.recycler.be.api.views.serializers.OrderUpdateRequest;
 import ae.recycler.be.enums.OrderStatusEnum;
 import ae.recycler.be.model.Customer;
@@ -73,6 +74,14 @@ public class CustomerService {
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Customer not found")));
     }
 
+
+    public Mono<List<OrderResponse>> getCustomerOrders(UUID customerId){
+        return customerRepository.findById(customerId)
+                .flatMap(customer -> orderRepository.findOrderBySubmittedByOrderByCreatedDateAsc(customer.getId(),
+                                List.of(OrderStatusEnum.SUBMITTED, OrderStatusEnum.ASSIGNED,
+                                        OrderStatusEnum.PICKING_UP))
+                        .collectList()).map(OrderResponse::fromOrders);
+    }
     private Mono<Order> isOrderUpdatable(Order order){
         return order.isUpdateable() ? Mono.just(order) : Mono.error(
                 new IllegalStateException(String.format("Order with status %s cannot be updated",

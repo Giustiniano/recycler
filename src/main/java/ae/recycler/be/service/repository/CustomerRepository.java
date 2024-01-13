@@ -21,11 +21,11 @@ public interface CustomerRepository extends ReactiveCrudRepository<Customer, UUI
 
     @Query("""
         MATCH (c:Customer {id:$customerId})
-        MERGE (c)-[:HAS_ADDRESS]->(newAddress:Address) SET newAddress = $address SET newAddress.id = randomUUID()
+        CREATE (c)-[:HAS_ADDRESS]->(newAddress:Address) SET newAddress = $address SET newAddress.id = randomUUID()
         RETURN newAddress.id as id, newAddress.lat as lat, newAddress.lng as lng, newAddress.emirate as emirate,
         newAddress.streetName as streetName, newAddress.area as area, newAddress.houseOrAptNumber as houseOrAptNumber,
         newAddress.floor as floor
     """)
     Mono<Address> saveNewCustomerAddress(@Param("customerId") UUID customerID, @Param("address") Map<String, Object> address);
-    
+
 }

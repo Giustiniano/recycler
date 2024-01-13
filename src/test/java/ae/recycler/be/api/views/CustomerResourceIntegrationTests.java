@@ -2,7 +2,10 @@ package ae.recycler.be.api.views;
 
 import ae.recycler.be.factories.AddressFactory;
 import ae.recycler.be.factories.CustomerFactory;
+import ae.recycler.be.factories.OrderFactory;
+import ae.recycler.be.model.Address;
 import ae.recycler.be.model.Customer;
+import ae.recycler.be.model.Order;
 import ae.recycler.be.service.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,6 +56,7 @@ public class CustomerResourceIntegrationTests {
 
     private static final String CUSTOMER_ENDPOINT = "/api/v1/customer";
     private static final String CUSTOMER_ADDRESS_ENDPOINT = CUSTOMER_ENDPOINT + "/%s/address";
+    private static final String CUSTOMER_ORDERS_ENDPOINT = CUSTOMER_ENDPOINT + "/%s/order";
     @BeforeEach
     public void beforeEach() {
         try(var driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens
@@ -119,5 +123,21 @@ public class CustomerResourceIntegrationTests {
                 .expectBody(new ParameterizedTypeReference<List<HashMap<String, Object>>>() {}).returnResult()
                 .getResponseBody();
         assert Objects.requireNonNull(customerAddresses).size() == 2;
+    }
+    @Test
+    public void testGetCustomerOrders(){
+        Customer customer = CustomerFactory.buildRandom();
+        Order order = new OrderFactory().setPickupAddress(new Address(null, 1.0, 2.0, null, "Dubai", "Braih Street", "Dubai Marina", "10", "10")).build();
+        order.setSubmittedBy(customer);
+        order = orderRepository.save(order).block();
+        List<HashMap<String, Object>> customerOrders = webTestClient.get()
+                .uri(CUSTOMER_ORDERS_ENDPOINT.formatted(order.getSubmittedBy().getId()))
+                .accept(MediaType.APPLICATION_JSON).exchange().expectStatus()
+                .isOk()
+                .expectBody(new ParameterizedTypeReference<List<HashMap<String, Object>>>() {}).returnResult()
+                .getResponseBody();
+        assert Objects.requireNonNull(customerOrders).size() == 1;
+        Map<String, Object> pickupAddress = (Map<String, Object>) customerOrders.get(0).get("pickupAddress");
+        assert pickupAddress.get("lat") != null;
     }
 }

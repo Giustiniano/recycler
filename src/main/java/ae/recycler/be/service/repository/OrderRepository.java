@@ -1,6 +1,7 @@
 package ae.recycler.be.service.repository;
 
 import ae.recycler.be.enums.OrderStatusEnum;
+import ae.recycler.be.model.Customer;
 import ae.recycler.be.model.Order;
 import ae.recycler.be.model.Vehicle;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -9,6 +10,7 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface OrderRepository extends ReactiveCrudRepository<Order, UUID> {
@@ -43,6 +45,12 @@ public interface OrderRepository extends ReactiveCrudRepository<Order, UUID> {
             coalesce(r_co_pw, r_ao_pw)
             """)
     Mono<Order> findOrderBeingPickedUpOrNextToPickup(@Param("vehicleId") UUID vehicleId);
+    @Query("""
+        MATCH (c:Customer {id:$customerId})<-[r_submitted_by:SUBMITTED_BY]-(o:Order)-[r_pickup_from:PICKUP_FROM]->
+        (pickup_from:Address) WHERE o.orderStatus in $orderStatuses
+        RETURN c, r_submitted_by, o, r_pickup_from, pickup_from ORDER BY o.createdDate
+    """)
+    Flux<Order> findOrderBySubmittedByOrderByCreatedDateAsc(UUID customerId, List<OrderStatusEnum> orderStatuses);
 
 
 

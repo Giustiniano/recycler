@@ -2,6 +2,8 @@ package ae.recycler.be.api.views;
 
 import ae.recycler.be.api.views.serializers.Address;
 import ae.recycler.be.api.views.serializers.NewOrderRequest;
+import ae.recycler.be.api.views.serializers.OrderResponse;
+import ae.recycler.be.model.Order;
 import ae.recycler.be.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,4 +35,13 @@ public class CustomerResource {
         UUID customerUUID = Validators.validateId(id, "Customer id is not a valid UUID");
         return customerService.getCustomerAddresses(customerUUID);
     }
+
+    @GetMapping(value = "{id}/order", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<List<OrderResponse>> getCustomerOrders(@PathVariable String id){
+
+        UUID customerUUID = Validators.validateId(id, "Customer id is not a valid UUID");
+        return customerService.getCustomerOrders(customerUUID);
+    }
+
 }
