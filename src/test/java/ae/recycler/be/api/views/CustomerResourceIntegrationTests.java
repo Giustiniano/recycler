@@ -1,5 +1,6 @@
 package ae.recycler.be.api.views;
 
+import ae.recycler.be.enums.OrderStatusEnum;
 import ae.recycler.be.factories.AddressFactory;
 import ae.recycler.be.factories.CustomerFactory;
 import ae.recycler.be.factories.OrderFactory;
@@ -9,6 +10,8 @@ import ae.recycler.be.model.Order;
 import ae.recycler.be.service.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Query;
@@ -130,14 +133,64 @@ public class CustomerResourceIntegrationTests {
         Order order = new OrderFactory().setPickupAddress(new Address(null, 1.0, 2.0, null, "Dubai", "Braih Street", "Dubai Marina", "10", "10")).build();
         order.setSubmittedBy(customer);
         order = orderRepository.save(order).block();
+        String url = CUSTOMER_ORDERS_ENDPOINT.formatted(order.getSubmittedBy().getId());
+        url += """
+                ?orderStatuses=SUBMITTED,ASSIGNED,PICKING_UP""";
         List<HashMap<String, Object>> customerOrders = webTestClient.get()
-                .uri(CUSTOMER_ORDERS_ENDPOINT.formatted(order.getSubmittedBy().getId()))
-                .accept(MediaType.APPLICATION_JSON).exchange().expectStatus()
-                .isOk()
+                .uri(url).accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk()
                 .expectBody(new ParameterizedTypeReference<List<HashMap<String, Object>>>() {}).returnResult()
                 .getResponseBody();
         assert Objects.requireNonNull(customerOrders).size() == 1;
         Map<String, Object> pickupAddress = (Map<String, Object>) customerOrders.get(0).get("pickupAddress");
         assert pickupAddress.get("lat") != null;
+    }
+
+    @Test
+    public void testDeleteCustomerOrder(){
+        Customer customer = CustomerFactory.buildRandom();
+        Order order = new OrderFactory().build();
+        order.setSubmittedBy(customer);
+        order = orderRepository.save(order).block();
+        String url = (CUSTOMER_ORDERS_ENDPOINT + "/%s").formatted(order.getSubmittedBy().getId(), order.getId());
+        webTestClient.delete().uri(url).exchange().expectStatus().isOk();
+        order = orderRepository.findById(order.getId()).block();
+        assert order.getOrderStatus().equals(OrderStatusEnum.CANCELED);
+    }
+
+    @Test
+    public void testDeleteCustomerOrderDifferentCustomer(){
+        Customer customer = CustomerFactory.buildRandom();
+        Order order = new OrderFactory().build();
+        order.setSubmittedBy(customer);
+        order = orderRepository.save(order).block();
+        Customer wrongCustomer = CustomerFactory.buildRandom();
+        customerRepository.save(wrongCustomer).block();
+        String url = (CUSTOMER_ORDERS_ENDPOINT + "/%s").formatted(wrongCustomer.getId(), order.getId());
+        HashMap<String, Object> error = webTestClient.delete().uri(url).exchange().expectStatus().isBadRequest()
+                .expectBody(new ParameterizedTypeReference<HashMap<String, Object>>() {}).returnResult()
+                .getResponseBody();
+        assert error.get("status").equals("BAD_REQUEST");
+        assert error.get("error").equals("Unable to cancel pickup");
+        assert error.get("detail").equals("This order was submitted by another user");
+        order = orderRepository.findById(order.getId()).block();
+        assert order.getOrderStatus().equals(OrderStatusEnum.SUBMITTED);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = OrderStatusEnum.class, names = {"CANCELED", "DELIVERED", "PICKED_UP", "DELIVERING"})
+    public void testDeleteCustomerOrderWrongStatus(OrderStatusEnum orderStatus){
+        Customer customer = CustomerFactory.buildRandom();
+        Order order = new OrderFactory().setOrderStatus(orderStatus).build();
+        order.setSubmittedBy(customer);
+        order = orderRepository.save(order).block();
+        String url = (CUSTOMER_ORDERS_ENDPOINT + "/%s").formatted(customer.getId(), order.getId());
+        HashMap<String, Object> error = webTestClient.delete().uri(url).exchange().expectStatus().isBadRequest()
+                .expectBody(new ParameterizedTypeReference<HashMap<String, Object>>() {}).returnResult()
+                .getResponseBody();
+        assert error.get("status").equals("BAD_REQUEST");
+        assert error.get("error").equals("Unable to cancel pickup");
+        assert error.get("detail").equals("This order cannot be canceled at this point");
+        order = orderRepository.findById(order.getId()).block();
+        assert order.getOrderStatus().equals(orderStatus);
     }
 }

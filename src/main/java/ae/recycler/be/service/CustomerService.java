@@ -75,11 +75,10 @@ public class CustomerService {
     }
 
 
-    public Mono<List<OrderResponse>> getCustomerOrders(UUID customerId){
+    public Mono<List<OrderResponse>> getCustomerOrders(UUID customerId, List<OrderStatusEnum> orderStatuses){
         return customerRepository.findById(customerId)
                 .flatMap(customer -> orderRepository.findOrderBySubmittedByOrderByCreatedDateAsc(customer.getId(),
-                                List.of(OrderStatusEnum.SUBMITTED, OrderStatusEnum.ASSIGNED,
-                                        OrderStatusEnum.PICKING_UP))
+                                orderStatuses)
                         .collectList()).map(OrderResponse::fromOrders);
     }
     private Mono<Order> isOrderUpdatable(Order order){
@@ -110,5 +109,18 @@ public class CustomerService {
             order.setBoxes(newBoxesCount);
         }
         return Mono.just(order);
+    }
+
+    public Mono<OrderResponse> cancelCustomerOrderPickup(UUID customerUUID, UUID orderUUID) {
+        return orderRepository.findById(orderUUID).flatMap(order -> {
+            if(!order.getSubmittedBy().getId().equals(customerUUID)){
+                return Mono.error(new IllegalArgumentException("This order was submitted by another user"));
+            }
+            if(!order.isUpdateable()){
+                return Mono.error(new IllegalArgumentException("This order cannot be canceled at this point"));
+            }
+            order.setOrderStatus(OrderStatusEnum.CANCELED);
+            return orderRepository.save(order);
+        }).map(OrderResponse::fromOrder);
     }
 }
