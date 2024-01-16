@@ -110,7 +110,7 @@ public class VehicleResourceIntegrationTests {
         Map<String, Object> actualAddress = (Map<String, Object>) response.get("pickupAddress");
         assert actualAddress.get("lat").equals(order.getPickupAddress().getLat());
         assert actualAddress.get("lng").equals(order.getPickupAddress().getLng());
-        assert actualAddress.get("humanReadableAddress").equals(order.getPickupAddress().getHumanReadableAddress());
+        assert actualAddress.get("humanReadableAddress").equals(order.getPickupAddress().getBuildingOrPlaceName());
 
     }
     @Test
@@ -142,7 +142,7 @@ public class VehicleResourceIntegrationTests {
         assert responsePickupAddress.get("lat").equals(expectedOrder.getPickupAddress().getLat());
         assert responsePickupAddress.get("lng").equals(expectedOrder.getPickupAddress().getLng());
         assert responsePickupAddress.get("humanReadableAddress").equals(expectedOrder.getPickupAddress()
-                .getHumanReadableAddress());
+                .getBuildingOrPlaceName());
         assert UUID.fromString((String) response.get("customerId")).equals(expectedOrder.getSubmittedBy().getId());
 
 
@@ -176,7 +176,7 @@ public class VehicleResourceIntegrationTests {
         assert responsePickupAddress.get("lat").equals(expectedOrder.getPickupAddress().getLat());
         assert responsePickupAddress.get("lng").equals(expectedOrder.getPickupAddress().getLng());
         assert responsePickupAddress.get("humanReadableAddress").equals(expectedOrder.getPickupAddress()
-                .getHumanReadableAddress());
+                .getBuildingOrPlaceName());
         assert UUID.fromString((String) response.get("customerId")).equals(expectedOrder.getSubmittedBy().getId());
 
 

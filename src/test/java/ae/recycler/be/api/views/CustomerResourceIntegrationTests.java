@@ -117,7 +117,7 @@ public class CustomerResourceIntegrationTests {
     @Test
     public void testGetCustomerAddresses(){
         Customer customer = CustomerFactory.buildRandom();
-        customer.getAddresses().add(AddressFactory.build());
+        customer.getAddresses().add(AddressFactory.buildRandom());
         customer = customerRepository.save(customer).block();
         List<HashMap<String, Object>> customerAddresses = webTestClient.get()
                 .uri(CUSTOMER_ADDRESS_ENDPOINT.formatted(customer.getId()))
@@ -130,7 +130,7 @@ public class CustomerResourceIntegrationTests {
     @Test
     public void testGetCustomerOrders(){
         Customer customer = CustomerFactory.buildRandom();
-        Order order = new OrderFactory().setPickupAddress(new Address(null, 1.0, 2.0, null, "Dubai", "Braih Street", "Dubai Marina", "10", "10")).build();
+        Order order = new OrderFactory().setPickupAddress(new Address(null, 1.0, 2.0, null, "Dubai", "Braih Street", "Dubai Marina", "10", "10", "Home")).build();
         order.setSubmittedBy(customer);
         order = orderRepository.save(order).block();
         String url = CUSTOMER_ORDERS_ENDPOINT.formatted(order.getSubmittedBy().getId());
@@ -142,7 +142,8 @@ public class CustomerResourceIntegrationTests {
                 .getResponseBody();
         assert Objects.requireNonNull(customerOrders).size() == 1;
         Map<String, Object> pickupAddress = (Map<String, Object>) customerOrders.get(0).get("pickupAddress");
-        assert pickupAddress.get("lat") != null;
+        assert ((Double)pickupAddress.get("lat")) == 1.0;
+        assert pickupAddress.get("emirate").equals("Dubai");
     }
 
     @Test

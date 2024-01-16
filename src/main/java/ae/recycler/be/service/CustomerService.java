@@ -1,6 +1,6 @@
 package ae.recycler.be.service;
 
-import ae.recycler.be.api.views.serializers.Address;
+import ae.recycler.be.api.views.serializers.JsonAddress;
 import ae.recycler.be.api.views.serializers.NewOrderRequest;
 import ae.recycler.be.api.views.serializers.OrderResponse;
 import ae.recycler.be.api.views.serializers.OrderUpdateRequest;
@@ -34,7 +34,7 @@ public class CustomerService {
         // first make sure the user exists
         return orderBody.flatMap(newOrderRequest1 -> customerRepository.findById(newOrderRequest1.getCustomerId())
                 .switchIfEmpty(Mono.error(new IllegalStateException("Customer not found")))
-                .flatMap(customer -> customerRepository.findCustomerAddress(
+                .flatMap(customer -> addressRepository.findCustomerAddress(
                         newOrderRequest1.getCustomerId(), newOrderRequest1.getPickupAddress()
                 ).switchIfEmpty(Mono.error(
                         new IllegalStateException("Cannot find pickup address in customer address list"))
@@ -62,15 +62,15 @@ public class CustomerService {
                 }));
     }
 
-    public Mono<Address> saveCustomerAddress(UUID customerId, Address address){
-        return customerRepository.saveNewCustomerAddress(customerId, address.toMap())
-                .map(Address::fromAddress).switchIfEmpty(Mono.error(
+    public Mono<JsonAddress> saveCustomerAddress(UUID customerId, JsonAddress address){
+        return addressRepository.saveNewCustomerAddress(customerId, address.toMap())
+                .map(JsonAddress::fromAddress).switchIfEmpty(Mono.error(
                 new IllegalArgumentException("Address not saved, customer was not found")));
     }
 
-    public Mono<List<Address>> getCustomerAddresses(UUID customerId){
+    public Mono<List<JsonAddress>> getCustomerAddresses(UUID customerId){
         return customerRepository.findById(customerId)
-                .map(Customer::getAddresses).map(Address::fromAddress)
+                .map(Customer::getAddresses).map(JsonAddress::fromAddress)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Customer not found")));
     }
 
@@ -90,7 +90,7 @@ public class CustomerService {
         if(address == null){
             return Mono.just(order);
         }
-        return customerRepository.findCustomerAddress(order.getSubmittedBy().getId(), address)
+        return addressRepository.findCustomerAddress(order.getSubmittedBy().getId(), address)
                 .switchIfEmpty(Mono.error(new IllegalStateException("Unable to find address"))).
                 flatMap(address1 -> {
                     order.setPickupAddress(address1); return Mono.just(order);});
@@ -111,7 +111,7 @@ public class CustomerService {
         return Mono.just(order);
     }
 
-    public Mono<OrderResponse> cancelCustomerOrderPickup(UUID customerUUID, UUID orderUUID) {
+    public Mono<?> cancelCustomerOrderPickup(UUID customerUUID, UUID orderUUID) {
         return orderRepository.findById(orderUUID).flatMap(order -> {
             if(!order.getSubmittedBy().getId().equals(customerUUID)){
                 return Mono.error(new IllegalArgumentException("This order was submitted by another user"));
@@ -121,6 +121,10 @@ public class CustomerService {
             }
             order.setOrderStatus(OrderStatusEnum.CANCELED);
             return orderRepository.save(order);
-        }).map(OrderResponse::fromOrder);
+        });
+    }
+
+    public Mono<?> deleteCustomerAddress(UUID customerUUID, UUID addressUUID) {
+        return Mono.empty();
     }
 }

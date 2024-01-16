@@ -20,13 +20,13 @@ public class OrderResponse {
     private OrderStatusEnum orderStatus;
     private Instant createdDate;
     private Instant lastModified;
-    private Address pickupAddress;
+    private JsonAddress pickupAddress;
     public static OrderResponse fromOrder(Order order){
         if(order.getId() == null){
             return null;
         }
         return OrderResponse.builder().id(order.getId())
-                .pickupAddress(Address.fromAddress(order.getPickupAddress()))
+                .pickupAddress(JsonAddress.fromAddress(order.getPickupAddress()))
                 .orderStatus(order.getOrderStatus()).boxes(order.getBoxes())
                 .customerId(order.getSubmittedBy().getId()).createdDate(order.getCreatedDate())
                 .lastModified(order.getLastModified()).build();

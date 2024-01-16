@@ -13,7 +13,7 @@ public class CustomerFactory {
     private List<Address> personalAddresses;
     public static Customer buildRandom(){
         List<Address> addresses = new ArrayList<>(1);
-        addresses.add(AddressFactory.build());
+        addresses.add(AddressFactory.buildRandom());
         return Customer.builder().email(EmailFactory.personalEmail()).addresses(addresses).build();
     }
 

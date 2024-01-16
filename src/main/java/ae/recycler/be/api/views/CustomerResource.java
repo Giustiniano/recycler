@@ -1,10 +1,9 @@
 package ae.recycler.be.api.views;
 
 import ae.recycler.be.api.exceptions.BadRequestException;
-import ae.recycler.be.api.views.serializers.Address;
+import ae.recycler.be.api.views.serializers.JsonAddress;
 import ae.recycler.be.api.views.serializers.OrderResponse;
 import ae.recycler.be.enums.OrderStatusEnum;
-import ae.recycler.be.model.Order;
 import ae.recycler.be.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,7 +24,7 @@ public class CustomerResource {
     private CustomerService customerService;
     @PostMapping(value = "{id}/address", produces = MediaType.APPLICATION_JSON_VALUE,consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<Address> saveNewCustomerAddress(@PathVariable String id, @RequestBody Mono<Address> customerAddress){
+    public Mono<JsonAddress> saveNewCustomerAddress(@PathVariable String id, @RequestBody Mono<JsonAddress> customerAddress){
 
         UUID customerUUID = Validators.validateId(id, "Customer id is not a valid UUID");
         return customerAddress.flatMap(ca -> customerService.saveCustomerAddress(customerUUID, ca));
@@ -33,15 +32,24 @@ public class CustomerResource {
 
     @GetMapping(value = "{id}/address", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public Mono<List<Address>> getCustomerAddresses(@PathVariable String id){
+    public Mono<List<JsonAddress>> getCustomerAddresses(@PathVariable String id){
 
         UUID customerUUID = Validators.validateId(id, "Customer id is not a valid UUID");
         return customerService.getCustomerAddresses(customerUUID);
     }
 
+    @DeleteMapping(value = "{id}/address/{addressId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<?> getCustomerAddresses(@PathVariable String id, @PathVariable String addressId){
+
+        UUID customerUUID = Validators.validateId(id, "Customer id is not a valid UUID");
+        UUID addressUUID = Validators.validateId(id, "Address id is not a valid UUID");
+        return customerService.deleteCustomerAddress(customerUUID, addressUUID);
+    }
+
     @DeleteMapping(value = "{id}/order/{orderId}")
     @ResponseStatus(HttpStatus.OK)
-    public Mono<OrderResponse> cancelCustomerOrderPickup(@PathVariable String id, @PathVariable String orderId){
+    public Mono<?> cancelCustomerOrderPickup(@PathVariable String id, @PathVariable String orderId){
         UUID customerUUID = Validators.validateId(id, "Customer id is not a valid UUID");
         UUID orderUUID = Validators.validateId(orderId, "Customer id is not a valid UUID");
         return customerService.cancelCustomerOrderPickup(customerUUID, orderUUID)
@@ -52,7 +60,8 @@ public class CustomerResource {
     @GetMapping(value = "{id}/order", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public Mono<List<OrderResponse>> getCustomerOrders(@PathVariable String id,
-                                                       @RequestParam("orderStatuses") List<String> orderStatuses){
+                                                       @RequestParam(value = "orderStatuses", required = false)
+                                                       List<String> orderStatuses){
 
         UUID customerUUID = Validators.validateId(id, "Customer id is not a valid UUID");
         List<OrderStatusEnum> orderStatusesEnum;

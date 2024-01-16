@@ -84,7 +84,7 @@ public class OrderResourceIntegrationTests {
     // POST
     @Test
     public void testSaveOrder(){
-        Address address = addressRepository.save(AddressFactory.build()).block();
+        Address address = addressRepository.save(AddressFactory.buildRandom()).block();
         Customer customer = customerRepository.save(Customer.builder().email("some_email@example.com")
                 .addresses(List.of(address)).build()).block();
 
@@ -147,7 +147,7 @@ public class OrderResourceIntegrationTests {
         Order order = new OrderFactory().build();
         orderRepository.save(order).block();
         Customer customer = order.getSubmittedBy();
-        Address newAddress = AddressFactory.build();
+        Address newAddress = AddressFactory.buildRandom();
         addressRepository.save(newAddress).block();
         List<Address> newAddressList = new ArrayList<>();
         newAddressList.addAll(customer.getAddresses());
@@ -177,7 +177,7 @@ public class OrderResourceIntegrationTests {
         order.setOrderStatus(status);
         orderRepository.save(order).block();
         Customer customer = order.getSubmittedBy();
-        Address newAddress = AddressFactory.build();
+        Address newAddress = AddressFactory.buildRandom();
         addressRepository.save(newAddress).block();
         List<Address> newAddressList = new ArrayList<>();
         newAddressList.addAll(customer.getAddresses());
@@ -203,7 +203,7 @@ public class OrderResourceIntegrationTests {
         order.setOrderStatus(status);
         orderRepository.save(order).block();
         Customer customer = order.getSubmittedBy();
-        Address newAddress = AddressFactory.build();
+        Address newAddress = AddressFactory.buildRandom();
         addressRepository.save(newAddress).block();
         List<Address> newAddressList = new ArrayList<>();
         newAddressList.addAll(customer.getAddresses());

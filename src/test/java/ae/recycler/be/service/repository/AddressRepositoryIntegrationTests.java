@@ -1,11 +1,11 @@
 package ae.recycler.be.service.repository;
 
-import ae.recycler.be.factories.AddressFactory;
 import ae.recycler.be.model.Address;
 import ae.recycler.be.model.Customer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.Neo4jContainer;
@@ -14,7 +14,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 @Testcontainers
-public class CustomerRepositoryIntegrationTests {
+@SpringBootTest
+public class AddressRepositoryIntegrationTests {
     @Container
     static Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:5.11-community").withAdminPassword("verysecret").withExposedPorts(7687,7474);
     @Autowired
@@ -37,11 +38,25 @@ public class CustomerRepositoryIntegrationTests {
 
     @Test
     public void testFindUserAddress(){
-        Address address = addressRepository.save(AddressFactory.build()).block();
+        Address address = new Address(null, 1.0, 2.0, null,
+                "Dubai", "Braih Street", "Dubai Marina",
+                "1010",  "10", "Home");
+
         Customer customer = customerRepository.save(Customer.builder().email("some_email@example.com")
                 .addresses(List.of(address)).build()).block();
-        var customerAddress = customerRepository.findCustomerAddress(customer.getId(), address.getId()).block();
+        var customerAddress = addressRepository.findCustomerAddress(customer.getId(), address.getId()).block();
         assert customerAddress != null;
         assert customerAddress.equals(address);
+    }
+    @Test
+    public void testSaveCustomerAddress(){
+        Address address = new Address(null, 1.0, 2.0, null,
+                "Dubai", "Braih Street", "Dubai Marina",
+                "1010",  "10", "Home");
+
+        Customer customer = customerRepository.save(Customer.builder().email("some_email@example.com").build()).block();
+        Address newAddress = addressRepository.saveNewCustomerAddress(customer.getId(), address.toMap()).block();
+        assert customerRepository.findById(customer.getId()).block().getAddresses().get(0).equals(newAddress);
+
     }
 }

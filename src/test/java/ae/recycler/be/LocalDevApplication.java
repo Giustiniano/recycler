@@ -62,6 +62,10 @@ class LocalDevApplication {
         Customer customer = CustomerFactory.buildRandom();
         customer.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
         customerRepository.save(customer).block();
+        Customer customer2 = CustomerFactory.buildRandom();
+        customer2.setId(UUID.fromString("00000000-0000-0000-0000-000000000002"));
+        customer2.getAddresses().clear();
+        customerRepository.save(customer2).block();
     }
 
     @TestConfiguration(proxyBeanMethods = false)

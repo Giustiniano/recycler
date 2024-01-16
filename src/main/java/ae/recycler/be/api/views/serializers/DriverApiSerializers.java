@@ -7,7 +7,7 @@ public class DriverApiSerializers {
     public static class ItineraryItem {
         private UUID orderId;
         private int boxes;
-        private Address address;
+        private JsonAddress address;
 
     }
 }
