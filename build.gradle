@@ -29,7 +29,7 @@ dependencies {
 	testImplementation "org.testcontainers:junit-jupiter:latest.release"
 	testImplementation group: 'org.testcontainers', name: 'neo4j', version: 'latest.release'
 	testImplementation "org.testcontainers:kafka"
-	testImplementation 'org.springframework.boot:spring-boot-devtools:latest.release'
+	testImplementation 'org.springframework.boot:spring-boot-devtools'
 }
 
 tasks.named('test') {

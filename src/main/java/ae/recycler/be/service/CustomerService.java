@@ -5,6 +5,7 @@ import ae.recycler.be.api.views.serializers.NewOrderRequest;
 import ae.recycler.be.api.views.serializers.OrderResponse;
 import ae.recycler.be.api.views.serializers.OrderUpdateRequest;
 import ae.recycler.be.enums.OrderStatusEnum;
+import ae.recycler.be.model.Address;
 import ae.recycler.be.model.Customer;
 import ae.recycler.be.model.Order;
 import ae.recycler.be.service.events.OrderEventProducer;
@@ -125,6 +126,12 @@ public class CustomerService {
     }
 
     public Mono<?> deleteCustomerAddress(UUID customerUUID, UUID addressUUID) {
-        return Mono.empty();
+        return addressRepository.deleteAddress(customerUUID, addressUUID).map(address -> {
+            if(address.getId() != null){
+                return Mono.error(new IllegalArgumentException(
+                        "Unable to delete this address: there are active pickups directed there"));
+            }
+            return address;
+        });
     }
 }

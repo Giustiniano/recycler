@@ -44,7 +44,10 @@ public class CustomerResource {
 
         UUID customerUUID = Validators.validateId(id, "Customer id is not a valid UUID");
         UUID addressUUID = Validators.validateId(id, "Address id is not a valid UUID");
-        return customerService.deleteCustomerAddress(customerUUID, addressUUID);
+        return customerService.deleteCustomerAddress(customerUUID, addressUUID)
+                .onErrorMap(IllegalArgumentException.class, ex ->
+                new BadRequestException("Unable to delete address", ex.getMessage(), ex));
+
     }
 
     @DeleteMapping(value = "{id}/order/{orderId}")

@@ -13,6 +13,7 @@ import ae.recycler.be.service.repository.OrderRepository;
 import ae.recycler.be.service.repository.VehicleRepository;
 import ae.recycler.be.service.repository.here.RequestObjects;
 import ae.recycler.be.service.repository.here.TestDataFactory;
+import lombok.SneakyThrows;
 import org.javatuples.Pair;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.devtools.restart.RestartScope;
@@ -70,12 +71,15 @@ class LocalDevApplication {
 
     @TestConfiguration(proxyBeanMethods = false)
     static class LocalDevTestcontainersConfig {
+        @SneakyThrows
         @Bean
         @RestartScope
         @ServiceConnection
         public Neo4jContainer<?> neo4jContainer() {
-            return new Neo4jContainer<>("neo4j:5.11-community").withExposedPorts(7687, 7474).
+            Neo4jContainer<?> container = new Neo4jContainer<>("neo4j:5.11-community").withExposedPorts(7687, 7474).
                     withAdminPassword("verysecret");
+            container.getClass().getDeclaredMethod("configure").invoke(container);
+            return container;
         }
 
 

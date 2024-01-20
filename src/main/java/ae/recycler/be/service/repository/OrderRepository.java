@@ -52,8 +52,12 @@ public interface OrderRepository extends ReactiveCrudRepository<Order, UUID> {
     """)
     Flux<Order> findOrderBySubmittedByOrderByCreatedDateAsc(UUID customerId, List<OrderStatusEnum> orderStatuses);
 
-
-
-
-
+    @Query("""
+        MATCH (c:Customer {id:$customerId})<-[r_submitted_by:SUBMITTED_BY]-(o:Order)-[r_pickup_from:PICKUP_FROM]->
+        (pickup_from:Address {id:$addressId}) WHERE o.orderStatus in $orderStatuses
+        RETURN c, r_submitted_by, o, r_pickup_from, pickup_from ORDER BY o.createdDate
+    """)
+    Flux<Order> findOrdersBySubmittedByAndAddress(@Param("customerId") UUID customerId,
+                                                  @Param("addressId") UUID addressId,
+                                                  @Param("orderStatuses") List<OrderStatusEnum> orderStatuses);
 }
