@@ -5,6 +5,7 @@ import ae.recycler.be.model.Vehicle;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
@@ -22,4 +23,13 @@ public interface VehicleRepository extends ReactiveCrudRepository<Vehicle, UUID>
                 ) ASC LIMIT 1
             """)
     Vehicle findClosestVehicle(@Param("newOrder") UUID newOrder);
+    @Query("""
+    MATCH (v:Vehicle {id:$vehicleId})
+    SET v.status = "AT_DEPOSIT"
+    OPTIONAL MATCH (pendingOrders:Order)-[pw:PICKUP_WITH]->(v) WHERE pendingOrders.orderStatus = "PICKING_UP" OR pendingOrders.orderStatus = "ASSIGNED"
+    SET pendingOrders.orderStatus = "SUBMITTED";
+    DELETE pw
+    WITH v return v;
+    """)
+    Mono endShift(@Param("vehicleId") UUID vehicleUUID);
 }

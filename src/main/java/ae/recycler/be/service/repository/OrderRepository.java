@@ -1,6 +1,7 @@
 package ae.recycler.be.service.repository;
 
 import ae.recycler.be.enums.OrderStatusEnum;
+import ae.recycler.be.enums.VehicleStatus;
 import ae.recycler.be.model.Customer;
 import ae.recycler.be.model.Order;
 import ae.recycler.be.model.Vehicle;

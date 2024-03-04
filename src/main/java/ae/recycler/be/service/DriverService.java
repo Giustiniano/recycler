@@ -36,7 +36,7 @@ public class DriverService {
         return checkDriverAndVehicle(driverId, vehicleId).flatMap(driverVehicleTuple -> {
             Driver driver = driverVehicleTuple.getT1();
             Vehicle vehicle = driverVehicleTuple.getT2();
-            if(driverVehicleTuple.getT2().getStatus().equals(VehicleStatus.PICKING_UP)){
+            if(vehicle.getStatus().equals(VehicleStatus.PICKING_UP)){
                 return continueShift(vehicle);
             }
 
@@ -107,18 +107,7 @@ public class DriverService {
     }
 
     public void endShift(UUID driverId, UUID vehicleId){
-        checkDriverAndVehicle(driverId, vehicleId).flatMap(driverAndVehicle -> {
-            driverAndVehicle.getT2().setStatus(VehicleStatus.AT_DEPOSIT);
-            List<Order> updatedOrders = driverAndVehicle.getT2().getAssignedOrders().stream()
-                    .filter(order -> order.getOrderStatus().equals(OrderStatusEnum.ASSIGNED)).map(order -> {
-                        order.setOrderStatus(OrderStatusEnum.SUBMITTED);
-                        order.setPickupOrder(null);
-                        return order;
-                    }).toList();
-            driverAndVehicle.getT2().setAssignedOrders(null);
-            return Mono.zip(vehicleRepository.save(driverAndVehicle.getT2()),
-                    orderRepository.saveAll(updatedOrders).collectList());
-        });
+        vehicleRepository.endShift(vehicleId);
     }
     private Mono<Tuple2<Driver, Vehicle>> checkDriverAndVehicle(UUID driverId, UUID vehicleId){
         return Mono.zip(driverRepository.findById(driverId).switchIfEmpty(Mono.error(
