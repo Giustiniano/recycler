@@ -11,7 +11,7 @@ public class GeocodedPlaces {
     public static final Address BURJ_AL_ARAB = new Address(
             null, 25.1415548,55.1836908, "Burj Al Arab");
     public static final Address DXB_TERMINAL_3 = new Address(
-            null, 25.0672222,55.095198,"DXB Terminal 3" );
+            null, 25.2485008,55.3522812,"DXB Terminal 3" );
     public static final Address EMIRATES_BUSINESS_CLASS_LOUNGE = new Address(
             null, 25.2515272,55.3377994, "Emirates Business Class Lounge");
     public static final Address MERCATO_SHOPPING_MALL = new Address(
@@ -26,7 +26,7 @@ public class GeocodedPlaces {
     public static final Address MARINA_MALL = new Address(
             null, 25.0763518,55.1393844, "Marina Mall");
     public static final Address AMAZON_WAREHOUSE_DUBAI_SOUTH = new Address(
-            null, 24.8994493,55.0066217, "Amazon warehouse Dubai South");
+            null, 24.8994493, 55.0066217, "Amazon warehouse Dubai South", "Dubai", "Emirates Road", "Dubai South", "1", "Ground", "Warehouse Dubai South");
 
     public static final List<Address> PICKUP_LOCATIONS = List.of(BURJ_KHALIFA, BURJ_AL_ARAB, DXB_TERMINAL_3,
             EMIRATES_BUSINESS_CLASS_LOUNGE, MERCATO_SHOPPING_MALL, MALL_OF_THE_EMIRATES, RAFFLES_THE_PALM, BUSINESS_BAY,

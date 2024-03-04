@@ -102,10 +102,10 @@ public class RequestObjects {
         static Shift fromVehicle(Vehicle vehicle){
             ShiftInfo start = ShiftInfo.builder().time(DateTimeFormatter.ISO_INSTANT
                     .format(vehicle.getDriver().getShiftStarts())).location(
-                            new Location(vehicle.getDepotLat(), vehicle.getDepotLng())).build();
+                            new Location(vehicle.getDepotAddress().getLat(), vehicle.getDepotAddress().getLng())).build();
             ShiftInfo end = ShiftInfo.builder().time(DateTimeFormatter.ISO_INSTANT
                     .format(vehicle.getDriver().getShiftEnds())).location(
-                    new Location(vehicle.getDepotLat(), vehicle.getDepotLng())).build();
+                    new Location(vehicle.getDepotAddress().getLat(), vehicle.getDepotAddress().getLng())).build();
             return new Shift(start, end);
         }
         public Shift[] toArray(){

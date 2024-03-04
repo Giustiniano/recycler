@@ -32,67 +32,73 @@ public class DriverService {
     @Autowired
     private HereAPIRepository hereAPIRepository;
 
-    public Mono<Order> startShift(UUID driverId, UUID vehicleId){
-        return checkDriverAndVehicle(driverId, vehicleId, List.of(VehicleStatus.AT_DEPOSIT)).flatMap(driverVehicleTuple -> {
-            driverVehicleTuple.getT2().setDriver(driverVehicleTuple.getT1());
+    public Mono<List<Order>> startShift(UUID driverId, UUID vehicleId){
+        return checkDriverAndVehicle(driverId, vehicleId).flatMap(driverVehicleTuple -> {
+            Driver driver = driverVehicleTuple.getT1();
+            Vehicle vehicle = driverVehicleTuple.getT2();
+            if(driverVehicleTuple.getT2().getStatus().equals(VehicleStatus.PICKING_UP)){
+                return continueShift(vehicle);
+            }
 
-            return Mono.zip(vehicleRepository.save(driverVehicleTuple.getT2()),
-                            orderRepository.findOrdersByOrderStatusOrderByCreatedDateAsc(OrderStatusEnum.SUBMITTED)
-                                    .collectList()).flatMap(vehicleOrders -> {
-                        List<Order> assignedOrders = getAssignedOrders(vehicleOrders);
-                        return Mono.zip(hereAPIRepository.
-                                        getPickupPath(List.of(driverVehicleTuple.getT2()), assignedOrders),
-                                        Mono.just(assignedOrders), Mono.just(vehicleOrders.getT1()));
+            return orderRepository.findOrdersByOrderStatusOrderByCreatedDateAsc(OrderStatusEnum.SUBMITTED).collectList()
+                    .flatMap(ordersToAssign -> {
+                if(ordersToAssign.isEmpty()){
+                    return Mono.empty();
+                }
 
-                            }
-                    ).flatMap(ordersItineraryVehicle -> {
+                List<Order> assignedOrders = getAssignedOrders(vehicle, ordersToAssign);
+                if(assignedOrders.isEmpty()){
+                    return Mono.empty();
+                }
+                return hereAPIRepository.getPickupPath(List.of(vehicle), assignedOrders).flatMap(apiResponse -> {
+                    vehicle.setAssignedOrders(processHereApiRoutingResponse(apiResponse, assignedOrders, vehicle));
+                    vehicle.setDriver(driver);
+                    vehicle.setStatus(VehicleStatus.PICKING_UP);
+                    return vehicleRepository.save(vehicle).map(Vehicle::getAssignedOrders);
+                });
 
-                List<Order> itinerary = processHereApiRoutingResponse(ordersItineraryVehicle);
-                ordersItineraryVehicle.getT3().setStatus(VehicleStatus.PICKING_UP);
-                return Mono.zip(vehicleRepository.save(ordersItineraryVehicle.getT3()), Mono.justOrEmpty(!itinerary.isEmpty() ? itinerary.get(0) : null));
+            });
 
-                }).flatMap(vehicleItinerary -> Mono.just(vehicleItinerary.getT2()));
         });
     }
 
+    private Mono<List<Order>> continueShift(Vehicle vehicle){
+        return orderRepository.findOrdersByAssignedVehicleOrderByPickupOrderAsc(vehicle.getId()).collectList();
+    }
+
     private static List<Order> processHereApiRoutingResponse(
-            Tuple3<ResponseObjects.Response, List<Order>, Vehicle> ordersItineraryVehicle) {
-        List<UUID> unassignedOrders = Optional.ofNullable(ordersItineraryVehicle.getT1().getUnassigned())
+            ResponseObjects.Response apiResponse, List<Order> orders, Vehicle vehicle) {
+        List<UUID> unassignedOrders = Optional.ofNullable(apiResponse.getUnassigned())
         .orElse(new ArrayList<>(0)).stream().map(ResponseObjects.Unassigned::getJobId)
         .toList();
         List<Order> itinerary = new ArrayList<>();
         int i = 1;
-        for(ResponseObjects.Stop stop : ordersItineraryVehicle.getT1().getTours().get(0).getStops()){
+        for(ResponseObjects.Stop stop : apiResponse.getTours().get(0).getStops()){
             String jobId = stop.getActivities().get(0).getJobId();
             if(jobId.equals("departure") || jobId.equals("arrival"))
                 continue;
             UUID jobUUID = UUID.fromString(jobId);
-            if(unassignedOrders.contains(jobUUID)){
-                ordersItineraryVehicle.getT2().stream().filter(order -> order.getId()
-                        .equals(jobUUID)).forEach(unassignedOrder ->
-                        unassignedOrder.setOrderStatus(OrderStatusEnum.SUBMITTED));
-            } else {
-                Order order = ordersItineraryVehicle.getT2().stream().filter(o -> o.getId().equals(jobUUID))
+            if(!unassignedOrders.contains(jobUUID)){
+                Order order = orders.stream().filter(o -> o.getId().equals(jobUUID))
                         .findFirst().get();
                 order.setPickupOrder(i);
+                order.setOrderStatus(OrderStatusEnum.ASSIGNED);
                 itinerary.add(order);
                 i++;
             }
         }
-        ordersItineraryVehicle.getT3().setAssignedOrders(itinerary);
         return itinerary;
     }
 
-    private static List<Order> getAssignedOrders(Tuple2<Vehicle, List<Order>> vehicleOrders) {
+    private static List<Order> getAssignedOrders(Vehicle vehicle, List<Order> ordersToAssign) {
         List<Order> assignedOrders = new ArrayList<>();
         int assignedCapacity = 0;
-        for(Order order: vehicleOrders.getT2()){
-            if(assignedCapacity == vehicleOrders.getT1().getCapacity()){
+        for(Order order: ordersToAssign){
+            if(assignedCapacity == vehicle.getCapacity()){
                 break;
             }
-            if(assignedCapacity + order.getBoxes() <= vehicleOrders.getT1().getCapacity()){
+            if(assignedCapacity + order.getBoxes() <= vehicle.getCapacity()){
                 assignedCapacity += order.getBoxes();
-                order.setOrderStatus(OrderStatusEnum.ASSIGNED);
                 assignedOrders.add(order);
             }
 
@@ -101,7 +107,7 @@ public class DriverService {
     }
 
     public void endShift(UUID driverId, UUID vehicleId){
-        checkDriverAndVehicle(driverId, vehicleId, List.of(VehicleStatus.PICKING_UP)).flatMap(driverAndVehicle -> {
+        checkDriverAndVehicle(driverId, vehicleId).flatMap(driverAndVehicle -> {
             driverAndVehicle.getT2().setStatus(VehicleStatus.AT_DEPOSIT);
             List<Order> updatedOrders = driverAndVehicle.getT2().getAssignedOrders().stream()
                     .filter(order -> order.getOrderStatus().equals(OrderStatusEnum.ASSIGNED)).map(order -> {
@@ -114,18 +120,11 @@ public class DriverService {
                     orderRepository.saveAll(updatedOrders).collectList());
         });
     }
-    private Mono<Tuple2<Driver, Vehicle>> checkDriverAndVehicle(UUID driverId, UUID vehicleId,
-                                                                List<VehicleStatus> allowedVehicleStatus){
+    private Mono<Tuple2<Driver, Vehicle>> checkDriverAndVehicle(UUID driverId, UUID vehicleId){
         return Mono.zip(driverRepository.findById(driverId).switchIfEmpty(Mono.error(
                                 new IllegalArgumentException(String.format("Unable to find driver with id %s", driverId)))),
                 vehicleRepository.findById(vehicleId).switchIfEmpty(Mono.error(
-                                new IllegalArgumentException(String.format("Unable to find driver with id %s", driverId))))
-                        .flatMap(vehicle -> {
-                                if(!allowedVehicleStatus.contains(vehicle.getStatus()))
-                                    return Mono.error(new IllegalStateException(
-                                            String.format("Vehicle is %s, allowed states: %s",
-                                                    vehicle.getStatus(), allowedVehicleStatus)));
-                                return Mono.just(vehicle);
-                            }));
+                                new IllegalArgumentException(String.format("Unable to find vehicle with id %s", driverId))))
+                        .map(vehicle -> vehicle));
     }
 }

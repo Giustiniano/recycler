@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -80,7 +81,8 @@ public class CustomerService {
         return customerRepository.findById(customerId)
                 .flatMap(customer -> orderRepository.findOrderBySubmittedByOrderByCreatedDateAsc(customer.getId(),
                                 orderStatuses)
-                        .collectList()).map(OrderResponse::fromOrders);
+                        .collectList()).map(OrderResponse::fromOrders)
+                .switchIfEmpty(Mono.just(new ArrayList<>(0)));
     }
     private Mono<Order> isOrderUpdatable(Order order){
         return order.isUpdateable() ? Mono.just(order) : Mono.error(

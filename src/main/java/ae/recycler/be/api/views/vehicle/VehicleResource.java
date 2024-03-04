@@ -1,8 +1,10 @@
 package ae.recycler.be.api.views.vehicle;
 
+import ae.recycler.be.api.exceptions.ResourceNotFoundException;
 import ae.recycler.be.api.views.Validators;
 import ae.recycler.be.api.views.serializers.OrderResponse;
 import ae.recycler.be.api.views.serializers.OrderUpdateRequest;
+import ae.recycler.be.api.views.serializers.VehicleResponse;
 import ae.recycler.be.service.OrderService;
 import ae.recycler.be.service.VehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +53,12 @@ public class VehicleResource {
     public Mono<OrderResponse> getNextOrderToPickup(@PathVariable String vehicleId){
         UUID vehicleUUID = Validators.validateId(vehicleId, String.format("%s is not a valid vehicle id", vehicleId));
         return vehicleService.getNextOrderToPickup(vehicleUUID);
+    }
+    @GetMapping(value="{id}")
+    public Mono<VehicleResponse> getVehicle(@PathVariable String id){
+        UUID vehicleUUID = Validators.validateId(id, String.format("%s is not a valid vehicle id", id));
+        return vehicleService.getVehicle(vehicleUUID).map(VehicleResponse::fromVehicle)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Unable to find vehicle")));
     }
 
     private Pair<UUID, UUID> parseVehicleAndOrderIds(String vehicleId, String orderId){

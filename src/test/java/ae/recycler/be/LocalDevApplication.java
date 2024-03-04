@@ -3,6 +3,7 @@ package ae.recycler.be;
 import ae.recycler.be.enums.VehicleStatus;
 import ae.recycler.be.factories.CustomerFactory;
 import ae.recycler.be.factories.DriverFactory;
+import ae.recycler.be.factories.VehicleFactory;
 import ae.recycler.be.model.Customer;
 import ae.recycler.be.model.Driver;
 import ae.recycler.be.model.Order;
@@ -37,13 +38,24 @@ class LocalDevApplication {
         var context = SpringApplication.from(AerecyclerbeApplication::main)
                 .with(LocalDevTestcontainersConfig.class)
                 .run(args);
-        buildTestDataAndStartBackend(context);
+        buildDefaultCustomerAndDriver(context);
+        //buildTestDataAndStartBackend(context);
         //buildSimpleOrderWithPickupAddressAndTestCustomQuery(context);
         //getOrderBeingPickedUp(context);
     }
 
+    private static void buildDefaultCustomerAndDriver(SpringApplication.Running context) {
+        Customer customer = CustomerFactory.buildRandom();
+        customer.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
+        customer.getAddresses().clear();
+        var customerRepository = context.getApplicationContext().getBean("customerRepository", CustomerRepository.class);
+        customerRepository.save(customer).block();
+        Driver driver = new DriverFactory().setId(new UUID(0L, 0L)).build();
+        Vehicle vehicle = new VehicleFactory().setDriver(driver).setId(new UUID(0L, 0L)).build();
+        var vehicleRepository = context.getApplicationContext().getBean("vehicleRepository", VehicleRepository.class);
+        vehicleRepository.save(vehicle).block();
 
-
+    }
 
 
     private static void buildTestDataAndStartBackend(SpringApplication.Running context) throws Exception{
@@ -78,13 +90,8 @@ class LocalDevApplication {
         public Neo4jContainer<?> neo4jContainer() {
             Neo4jContainer<?> container = new Neo4jContainer<>("neo4j:5.11-community").withExposedPorts(7687, 7474).
                     withAdminPassword("verysecret");
-            container.getClass().getDeclaredMethod("configure").invoke(container);
             return container;
         }
-
-
-
-
     }
 
 }

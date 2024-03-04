@@ -72,6 +72,7 @@ public class VehicleResourceIntegrationTests {
 
     private static final String assignedOrderEndpoint = "/api/v1/vehicle/%s/orders/%s";
     private static final String nextOrderToPickupEndpoint = "/api/v1/vehicle/%s/orders/next";
+    private static final String vehicleInfo = "/api/v1/vehicle/%s";
 
     @Test
     public void updateAssignedOrder(){
@@ -204,5 +205,41 @@ public class VehicleResourceIntegrationTests {
 
         assert response == null;
 
+    }
+
+    @Test
+    public void getVehicleInfo(){
+        Vehicle v = new VehicleFactory().build();
+        v = vehicleRepository.save(v).block();
+        Map<String, Object> response = webTestClient.get()
+                .uri(String.format(vehicleInfo, v.getId())).accept(MediaType.APPLICATION_JSON).exchange()
+                .expectStatus().isOk().expectBody(new ParameterizedTypeReference<HashMap<String, Object>>() {})
+                .returnResult().getResponseBody();
+
+        assert UUID.fromString((String) response.get("id")).equals(v.getId());
+        assert response.get("vehicleType").equals(v.getVehicleType().toString());
+        assert response.get("plate").equals(v.getPlate());
+        assert response.get("capacity").equals(v.getCapacity());
+        assert response.get("costTime").equals(v.getCostTime());
+        assert response.get("status").equals(v.getStatus().toString());
+        assert response.get("lat").equals(v.getLat());
+        assert response.get("lng").equals(v.getLng());
+        Map<String, Object> depotAddress = (Map<String, Object>) response.get("depot");
+        assert UUID.fromString((String) depotAddress.get("id")).equals(v.getDepotAddress().getId());
+        assert depotAddress.get("lat").equals(v.getDepotAddress().getLat());
+        assert depotAddress.get("lng").equals(v.getDepotAddress().getLng());
+        assert depotAddress.get("buildingOrPlaceName").equals(v.getDepotAddress().getBuildingOrPlaceName());
+        assert depotAddress.get("emirate").equals(v.getDepotAddress().getEmirate());
+        assert depotAddress.get("streetName").equals(v.getDepotAddress().getStreetName());
+        assert depotAddress.get("area").equals(v.getDepotAddress().getArea());
+        assert depotAddress.get("houseOrAptNumber").equals(v.getDepotAddress().getHouseOrAptNumber());
+        assert depotAddress.get("floor").equals(v.getDepotAddress().getFloor());
+        assert depotAddress.get("nickname").equals(v.getDepotAddress().getNickname());
+    }
+
+    @Test
+    public void getVehicleInfoNotFound(){
+        webTestClient.get().uri(String.format(vehicleInfo, UUID.randomUUID())).accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isNotFound();
     }
 }

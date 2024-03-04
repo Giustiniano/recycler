@@ -21,7 +21,7 @@ public interface OrderRepository extends ReactiveCrudRepository<Order, UUID> {
             MATCH (v:Vehicle {id:$vehicleId})<-[r_pw:PICKUP_WITH]-(`order`:Order)
             MATCH (`order`)-[r_pf:PICKUP_FROM]->(pickupAddress:Address)
             MATCH (`order`)-[r_sb:SUBMITTED_BY]->(submitter:Customer)
-            RETURN `order` ORDER BY order.pickupOrder ASC, v, r_pw, r_pf, pickupAddress, submitter
+            RETURN `order`, v, r_pw, r_pf, r_sb, pickupAddress, submitter ORDER BY `order`.pickupOrder
             """)
     Flux<Order> findOrdersByAssignedVehicleOrderByPickupOrderAsc(@Param("vehicleId") UUID vehicleId);
 
@@ -60,4 +60,6 @@ public interface OrderRepository extends ReactiveCrudRepository<Order, UUID> {
     Flux<Order> findOrdersBySubmittedByAndAddress(@Param("customerId") UUID customerId,
                                                   @Param("addressId") UUID addressId,
                                                   @Param("orderStatuses") List<OrderStatusEnum> orderStatuses);
+
+
 }

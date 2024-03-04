@@ -46,8 +46,8 @@ public class OrderResource {
     @PatchMapping(value = "{id}", produces = MediaType.APPLICATION_JSON_VALUE,consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<OrderResponse> updateOrder(@PathVariable String id, @RequestBody Mono<OrderUpdateRequest> orderUpdate){
         UUID orderId = Validators.validateId(id, ERR_MSG);
-        return orderUpdate.flatMap(orderUpdate1 -> customerService.updateOrder(orderId, orderUpdate1)).
-                onErrorMap(IllegalStateException.class, ex -> new UnprocessableEntityException(ex.getMessage(), null, ex))
+        return orderUpdate.flatMap(orderUpdate1 -> customerService.updateOrder(orderId, orderUpdate1))
+                .onErrorMap(IllegalStateException.class, ex -> new UnprocessableEntityException(ex.getMessage(), null, ex))
                 .flatMap(order -> Mono.just(OrderResponse.fromOrder(order)));
     }
 

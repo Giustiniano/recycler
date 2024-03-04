@@ -5,6 +5,7 @@ import ae.recycler.be.enums.OrderStatusEnum;
 import ae.recycler.be.enums.VehicleStatus;
 import ae.recycler.be.factories.CustomerFactory;
 import ae.recycler.be.factories.DriverFactory;
+import ae.recycler.be.factories.OrderFactory;
 import ae.recycler.be.factories.VehicleFactory;
 import ae.recycler.be.model.Driver;
 import ae.recycler.be.model.Order;
@@ -41,9 +42,7 @@ import reactor.core.publisher.Mono;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static java.lang.String.format;
 
@@ -117,10 +116,11 @@ public class DriverResourceIntegrationTests {
         orderRepository.saveAll(ordersVehicle.getValue0()).blockLast();
         ordersVehicle.getValue1().setDriver(driver);
         Vehicle vehicle = vehicleRepository.save(ordersVehicle.getValue1()).block();
-        OrderResponse firstOrderToPickup = webTestClient.put().uri(format(startShiftEndpoint, driver.getId(),
+        List<OrderResponse> ordersToPickup = webTestClient.put().uri(format(startShiftEndpoint, driver.getId(),
                 vehicle.getId())).exchange().expectStatus().isOk()
-                .expectBody(new ParameterizedTypeReference<OrderResponse>() {}).returnResult()
+                .expectBody(new ParameterizedTypeReference<List<OrderResponse>>() {}).returnResult()
                 .getResponseBody();
+
 
         // check that the itinerary order is preserved
         List<UUID> actualOrdersItineraryUUID = orderRepository
@@ -160,6 +160,21 @@ public class DriverResourceIntegrationTests {
 
 
     }
+
+    @Test
+    public void testDriverStartShiftNoOrders(){
+        Driver driver = new DriverFactory().build();
+        Vehicle vehicle = new VehicleFactory().build();
+        driverRepository.save(driver).block();
+        vehicleRepository.save(vehicle).block();
+        List<OrderResponse> ordersToPickup = webTestClient.put().uri(format(startShiftEndpoint, driver.getId(),
+                        vehicle.getId())).exchange().expectStatus().isOk()
+                .expectBody(new ParameterizedTypeReference<List<OrderResponse>>() {}).returnResult()
+                .getResponseBody();
+        assert ordersToPickup.isEmpty();
+    }
+
+
     @Test
     public void testDriverEndShift() throws IOException {
 
@@ -196,6 +211,23 @@ public class DriverResourceIntegrationTests {
         vehicleRepository.save(vehicle).block();
         webTestClient.put().uri(format(startShiftEndpoint, driver.getId(),
                         vehicle.getId())).exchange().expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    @Test
+    public void testDriverContinueShift(){
+        Driver driver = new DriverFactory().build();
+        Vehicle vehicle = new VehicleFactory().setStatus(VehicleStatus.PICKING_UP).build();
+        List<Order> expectedOrders = List.of(new OrderFactory().setPickupOrder(1).build(), new OrderFactory()
+                .setPickupOrder(2).build());
+        expectedOrders.forEach(order -> addressRepository.save(order.getPickupAddress()).block());
+        vehicle.setAssignedOrders(expectedOrders);
+        vehicleRepository.save(vehicle).block();
+        driverRepository.save(driver).block();
+        List<HashMap<String, Object>> response = webTestClient.put().uri(format(startShiftEndpoint, driver.getId(),
+                vehicle.getId())).exchange().expectStatus().isOk()
+                .expectBody(new ParameterizedTypeReference<List<HashMap<String, Object>>>(){}).returnResult()
+                .getResponseBody();
+        assert response.size() == expectedOrders.size();
     }
 
 }

@@ -2,6 +2,7 @@ package ae.recycler.be.factories;
 
 import ae.recycler.be.enums.VehicleStatus;
 import ae.recycler.be.enums.VehicleType;
+import ae.recycler.be.model.Address;
 import ae.recycler.be.model.Driver;
 import ae.recycler.be.model.Order;
 import ae.recycler.be.model.Vehicle;
@@ -21,8 +22,7 @@ public class VehicleFactory {
     private Double lat;
     private Double lng;
     private Driver driver;
-    private Double depotLat;
-    private Double depotLng;
+    private Address depotAddress;
     private double costDistance = 0.0001;
     private int costTime = 0;
 
@@ -71,15 +71,11 @@ public class VehicleFactory {
         return this;
     }
 
-    public VehicleFactory setDepotLat(Double depotLat) {
-        this.depotLat = depotLat;
+    public VehicleFactory setDepotAddress(Address depotAddress) {
+        this.depotAddress = depotAddress;
         return this;
     }
 
-    public VehicleFactory setDepotLng(Double depotLng) {
-        this.depotLng = depotLng;
-        return this;
-    }
 
     public VehicleFactory setCostDistance(double costDistance) {
         this.costDistance = costDistance;
@@ -97,8 +93,7 @@ public class VehicleFactory {
                 .orElse(10), Optional.ofNullable(status).orElse(VehicleStatus.AT_DEPOSIT), assignedOrders,
                 Optional.ofNullable(lat).orElse(GeocodedPlaces.AMAZON_WAREHOUSE_DUBAI_SOUTH.getLat()),
                 Optional.ofNullable(lng).orElse(GeocodedPlaces.AMAZON_WAREHOUSE_DUBAI_SOUTH.getLng()), driver,
-                Optional.ofNullable(depotLat).orElse(GeocodedPlaces.AMAZON_WAREHOUSE_DUBAI_SOUTH.getLat()),
-                Optional.ofNullable(depotLng).orElse(GeocodedPlaces.AMAZON_WAREHOUSE_DUBAI_SOUTH.getLng()),
+                Optional.ofNullable(depotAddress).orElse(GeocodedPlaces.AMAZON_WAREHOUSE_DUBAI_SOUTH),
                 costDistance, costTime);
     }
 

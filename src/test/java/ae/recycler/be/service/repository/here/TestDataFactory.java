@@ -23,8 +23,7 @@ public class TestDataFactory {
             v.setCapacity(type.getCapacity()[0]);
             v.setLat(type.getShifts()[0].getStart().getLocation().getLat());
             v.setLng(type.getShifts()[0].getStart().getLocation().getLng());
-            v.setDepotLat(v.getLat());
-            v.setDepotLng(v.getLng());
+            v.setDepotAddress(new Address(null, v.getLat(), v.getLng(), null));
             v.setStatus(VehicleStatus.AT_DEPOSIT);
             return v;
         }).toList();

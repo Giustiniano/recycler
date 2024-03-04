@@ -39,10 +39,8 @@ public class Vehicle extends BaseModel{
     private Double lng;
     @Relationship(type = "HAS_DRIVER", direction = Relationship.Direction.OUTGOING)
     private Driver driver;
-    @Property
-    private Double depotLat;
-    @Property
-    private Double depotLng;
+    @Relationship(type = "HAS_DEPOT", direction = Relationship.Direction.OUTGOING)
+    private Address depotAddress;
     @Property
     private double costDistance = 0.0001;
     @Property

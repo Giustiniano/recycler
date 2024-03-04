@@ -62,4 +62,8 @@ public class VehicleService {
                 .flatMap(vehicle -> orderRepository.findOrderBeingPickedUpOrNextToPickup(vehicleUUID)
                         .flatMap(order -> Mono.justOrEmpty(OrderResponse.fromOrder(order))));
     }
+
+    public Mono<Vehicle> getVehicle(UUID vehicleId){
+        return vehicleRepository.findById(vehicleId);
+    }
 }
