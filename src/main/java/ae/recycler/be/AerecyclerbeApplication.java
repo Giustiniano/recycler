@@ -1,6 +1,13 @@
 package ae.recycler.be;
 
+import ae.recycler.be.enums.VehicleStatus;
+import ae.recycler.be.enums.VehicleType;
+import ae.recycler.be.model.Address;
+import ae.recycler.be.model.Customer;
+import ae.recycler.be.model.Vehicle;
 import ae.recycler.be.service.events.serializers.OrderEvent;
+import ae.recycler.be.service.repository.CustomerRepository;
+import ae.recycler.be.service.repository.VehicleRepository;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -12,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.ReactiveAuditorAware;
 import org.springframework.data.neo4j.config.EnableReactiveNeo4jAuditing;
@@ -25,9 +33,7 @@ import reactor.core.publisher.Mono;
 import reactor.kafka.receiver.ReceiverOptions;
 import reactor.kafka.sender.SenderOptions;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @SpringBootApplication
 @EnableReactiveNeo4jAuditing
@@ -35,6 +41,8 @@ public class AerecyclerbeApplication {
 
 	@Value("${spring.kafka.producer.bootstrap-servers}")
 	private String kafkaBootstrapServers;
+	@Value("${spring.profiles.active:default}")
+	private static String activeProfile;
 	@Bean
 	Configuration cypherDslConfiguration() {
 		return Configuration.newConfig()
@@ -81,7 +89,28 @@ public class AerecyclerbeApplication {
 
 
 	public static void main(String[] args) {
-		SpringApplication.run(AerecyclerbeApplication.class, args);
+		var context = SpringApplication.run(AerecyclerbeApplication.class, args);
+		if(Arrays.asList(context.getEnvironment().getActiveProfiles()).contains("docker"))
+			buildDefaultCustomerAndDriver(context);
 	}
+	private static void buildDefaultCustomerAndDriver(ConfigurableApplicationContext context) {
+		Customer customer = Customer.builder().id(UUID.fromString("00000000-0000-0000-0000-000000000001"))
+				.build();
+		customer.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
+		var customerRepository = context.getBean("customerRepository", CustomerRepository.class);
+		customerRepository.save(customer).block();
+		Address depot = new Address(
+				null, 24.8994493, 55.0066217, "Amazon warehouse Dubai South",
+				"Dubai", "Emirates Road", "Dubai South", "1", "Ground", "Warehouse Dubai South");
+
+		ae.recycler.be.model.Driver driver = ae.recycler.be.model.Driver.builder().id(new UUID(0L, 0L)).build();
+		Vehicle vehicle = Vehicle.builder().driver(driver).id(new UUID(0L, 0L))
+				.vehicleType(VehicleType.CAR).status(VehicleStatus.AT_DEPOSIT).capacity(10).lat(depot.getLat())
+				.lng(depot.getLng()).plate("AB 001 DE").build();
+		var vehicleRepository = context.getBean("vehicleRepository", VehicleRepository.class);
+		vehicleRepository.save(vehicle).block();
+
+	}
+
 
 }

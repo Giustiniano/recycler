@@ -1,0 +1,20 @@
+services:
+  recycler-be:
+    image: recycler-be:latest
+    ports:
+      - 8080:8080
+    depends_on:
+      neo4j:
+        condition: service_healthy
+        restart: true
+
+
+  neo4j:
+    image: neo4j:5.11-community
+    ports:
+      - 7474:7474
+      - 7687:7687
+    environment:
+      NEO4J_AUTH: neo4j/verysecret
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:7474 || exit 1"]

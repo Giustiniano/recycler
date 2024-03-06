@@ -2,10 +2,7 @@ package ae.recycler.be.model;
 
 import ae.recycler.be.enums.VehicleStatus;
 import ae.recycler.be.enums.VehicleType;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.javatuples.Pair;
 import org.springframework.data.neo4j.core.schema.*;
 import reactor.util.function.Tuple2;
@@ -18,6 +15,7 @@ import java.util.UUID;
 @Node
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Vehicle extends BaseModel{
     @GeneratedValue
     @Id
